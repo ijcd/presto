@@ -27,11 +27,14 @@ defmodule Presto.PageSupervisor do
   @doc """
   Starts a supervised Presto.Page process.
   """
-  @spec start_page(Presto.page_module(), Presto.page_key()) :: any()
-  def start_page(page_module, page_key) do
+  @spec start_page(Presto.page_module(), Presto.page_key(), Presto.Page.model()) :: term()
+  def start_page(page_module, page_key, initial_model \\ %{}) do
+    # @spec start_page(Presto.page_module(), Presto.page_key()) :: term()
+    # def start_page(page_module, page_key) do
     spec = %{
       id: Presto.Page,
-      start: {Presto.Page, :start_link, [page_module, page_key]},
+      # start: {Presto.Page, :start_link, [page_module, page_key, initial_model]},
+      start: {Presto.Page, :start_link, [page_module, page_key, initial_model]},
       restart: :transient
     }
 

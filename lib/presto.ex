@@ -6,6 +6,7 @@ defmodule Presto do
   @type page_key() :: Registry.key()
   @type page_module() :: atom()
   @type page_create() :: {:ok, Presto.page_key()} | {:error, term()}
+  @type page_event() :: term()
 
   @doc """
   Creates a new page process based on the `page_module`, and `page_key`.
@@ -71,5 +72,14 @@ defmodule Presto do
       {:error, :no_such_page} -> false
       {:ok, pid} when is_pid(pid) -> true
     end
+  end
+
+  @doc """
+  Send an event to a page.
+  """
+  @spec dispatch(page_module, page_key, page_event) :: any
+  def dispatch(page_module, page_key, message) do
+    {:ok, pid} = Presto.find_or_create_page(page_module, page_key)
+    Presto.Page.update(pid, message)
   end
 end

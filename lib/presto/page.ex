@@ -1,7 +1,21 @@
 defmodule Presto.Page do
   use GenServer, restart: :transient
 
-  @callback key_spec(Presto.page_key()) :: any()
+  @type message :: term()
+  @type model :: term()
+
+  # Plug.Conn callbacks
+  @callback init(Plug.opts()) :: Plug.opts()
+  @callback call(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
+
+  # Page addressing
+  @callback page_id(Plug.Conn.t()) :: term()
+  @callback key_spec(Presto.page_key()) :: term()
+
+  # State, update, and render
+  @callback initial_model(model()) :: term()
+  @callback update(message(), model()) :: model()
+  @callback render(model()) :: Phoenix.HTML.safe()
 
   defmacro __using__(_opts) do
     quote location: :keep do
@@ -10,6 +24,24 @@ defmodule Presto.Page do
       def key_spec(page_key) do
         {__MODULE__, page_key}
       end
+
+      def init([]), do: :index
+
+      def call(conn, :index) do
+        {:safe, body} = Presto.dispatch(__MODULE__, page_id(conn), :current)
+
+        conn
+        |> Plug.Conn.put_resp_header("content-type", "text/html; charset=utf-8")
+        |> Plug.Conn.send_resp(200, body)
+      end
+
+      def page_id(conn) do
+        conn.assigns.visitor_id
+      end
+
+      def update(_message, model), do: model
+      def render(model), do: {:safe, inspect(model)}
+      def initial_model(model), do: model
 
       defoverridable Presto.Page
     end
@@ -31,8 +63,9 @@ defmodule Presto.Page do
   def start_link(page_module, page_key, initial_model \\ %{}) do
     key_spec = page_module.key_spec(page_key)
     name = via_tuple(key_spec)
+    model = page_module.initial_model(initial_model)
 
-    initial_state = %State{page_key: page_key, page_module: page_module, model: initial_model}
+    initial_state = %State{page_key: page_key, page_module: page_module, model: model}
 
     GenServer.start_link(__MODULE__, initial_state, name: name)
   end
@@ -63,6 +96,7 @@ defmodule Presto.Page do
   """
   def handle_call(message, _from, state) do
     new_state = do_update(message, state)
+
     reply = {:ok, do_render(new_state)}
 
     {:reply, reply, new_state}

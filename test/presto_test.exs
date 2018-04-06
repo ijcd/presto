@@ -13,7 +13,7 @@ defmodule PrestoTest do
 
     def update(message, model) do
       case message do
-        :initial -> model
+        :current-> model
         :inc -> model + 1
       end
     end
@@ -80,7 +80,7 @@ defmodule PrestoTest do
     end
 
     test "returns existing page" do
-      {:ok, pid} = Presto.create_page(CounterPage, 1)
+      {:ok, _pid} = Presto.create_page(CounterPage, 1)
       assert Presto.page_exists?(CounterPage, 1)
     end
   end
