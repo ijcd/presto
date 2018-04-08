@@ -1,9 +1,12 @@
 defmodule Presto.Mixfile do
   use Mix.Project
 
+  @name "Presto"
   @version "0.1.0"
+  @maintainers ["Ian Duggan"]
+  @licenses ["Apache 2.0"]
   @source_url "https://github.com/ijcd/presto"
-  @description "Single Page Apps in Elixir, without the Single Page App!"
+  @description "Server-side single page apps in Elixir."
 
   def project do
     [
@@ -17,7 +20,7 @@ defmodule Presto.Mixfile do
 
       # docs
       description: @description,
-      name: "Presto",
+      name: @name,
       source_url: @source_url,
       package: package(),
       dialyzer: [flags: "--fullpath"],
@@ -46,18 +49,14 @@ defmodule Presto.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:phoenix_html, "~> 2.10"},
-      # {:phoenix, "~> 1.3.0", only: [:dev, :test], runtime: false},
-
       # docs
       {:ex_doc, "~> 0.16.4", only: :dev, runtime: false},
       {:earmark, "~> 1.2", only: :dev, runtime: false},
 
+      # dev/test
       {:mix_test_watch, "~> 0.3", only: [:dev, :test], runtime: false},
-      {:credo, "~> 0.8.5", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
-      {:stream_data, "~> 0.2.0", only: [:dev, :test], runtime: false},
-      {:mex, "~> 0.0.5", only: [:dev, :test], runtime: false},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -65,8 +64,8 @@ defmodule Presto.Mixfile do
     [
       description: @description,
       files: ["lib", "config", "mix.exs", "README*"],
-      maintainers: ["Ian Duggan"],
-      licenses: ["Apache 2.0"],
+      maintainers: @maintainers,
+      licenses: @licenses,
       links: %{GitHub: @source_url}
     ]
   end
