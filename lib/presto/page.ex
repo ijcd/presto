@@ -3,17 +3,18 @@ defmodule Presto.Page do
 
   @type message :: term()
   @type model :: term()
+  @type assigns :: Keyword.t | map
 
   # Plug.Conn callbacks
   @callback init(Plug.opts()) :: Plug.opts()
   @callback call(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
 
   # Page addressing
-  @callback page_id(Plug.Conn.t()) :: term()
+  @callback page_id(assigns) :: term()
   @callback key_spec(Presto.page_key()) :: term()
 
   # State, update, and render
-  @callback index(Plug.Conn.t()) :: Phoenix.HTML.safe()
+  @callback index(assigns()) :: Phoenix.HTML.safe()
   @callback initial_model(model()) :: term()
   @callback update(message(), model()) :: model()
   @callback render(model()) :: Phoenix.HTML.safe()
@@ -29,23 +30,27 @@ defmodule Presto.Page do
       def init([]), do: :index
 
       def call(conn, :index) do
-        {:safe, body} = index(conn)
+        assigns = Map.put(conn.assigns, :conn, conn)
+        {:safe, body} = index(assigns)
 
         conn
         |> Plug.Conn.put_resp_header("content-type", "text/html; charset=utf-8")
         |> Plug.Conn.send_resp(200, body)
       end
 
-      def page_id(conn) do
-        conn.assigns.visitor_id
+      def page_id(assigns) do
+        assigns.visitor_id
       end
 
-      def index(conn) do
-        {:ok, content} = Presto.dispatch(__MODULE__, page_id(conn), :current)
+      def index(assigns) do
+        {:ok, content} = Presto.dispatch(__MODULE__, page_id(assigns), :current)
         content
       end
+
       def update(_message, model), do: model
+
       def render(model), do: {:safe, inspect(model)}
+
       def initial_model(model), do: model
 
       defoverridable Presto.Page
