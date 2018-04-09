@@ -98,4 +98,29 @@ defmodule Presto.PageTest do
       assert result2 == {:safe, "2"}
     end
   end
+
+  defmodule IndexFixture do
+    use Presto.Page
+  end
+
+  defmodule IndexOverriddenFixture do
+    use Presto.Page
+    def index(_conn), do: {:safe, "something else"}
+  end
+
+  describe "index/1" do
+    test "returns initial content" do
+      {:ok, pid} = Page.start_link(IndexFixture, "visitor1", 1)
+      conn = %{assigns: %{visitor_id: "visitor1"}}
+
+      assert {:safe, "1"} = IndexFixture.index(conn)
+    end
+
+    test "is overridable" do
+      {:ok, pid} = Page.start_link(IndexOverriddenFixture, "visitor1", 1)
+      conn = %{assigns: %{visitor_id: "visitor1"}}
+
+      assert {:safe, "something else"} = IndexOverriddenFixture.index(conn)
+    end
+  end
 end

@@ -13,6 +13,7 @@ defmodule Presto.Page do
   @callback key_spec(Presto.page_key()) :: term()
 
   # State, update, and render
+  @callback index(Plug.Conn.t()) :: Phoenix.HTML.safe()
   @callback initial_model(model()) :: term()
   @callback update(message(), model()) :: model()
   @callback render(model()) :: Phoenix.HTML.safe()
@@ -28,7 +29,7 @@ defmodule Presto.Page do
       def init([]), do: :index
 
       def call(conn, :index) do
-        {:safe, body} = Presto.dispatch(__MODULE__, page_id(conn), :current)
+        {:safe, body} = index(conn)
 
         conn
         |> Plug.Conn.put_resp_header("content-type", "text/html; charset=utf-8")
@@ -39,6 +40,10 @@ defmodule Presto.Page do
         conn.assigns.visitor_id
       end
 
+      def index(conn) do
+        {:ok, content} = Presto.dispatch(__MODULE__, page_id(conn), :current)
+        content
+      end
       def update(_message, model), do: model
       def render(model), do: {:safe, inspect(model)}
       def initial_model(model), do: model
