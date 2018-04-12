@@ -82,4 +82,14 @@ defmodule Presto do
     {:ok, pid} = Presto.find_or_create_page(page_module, page_key)
     Presto.Page.update(pid, message)
   end
+
+  @doc """
+  Embed a component.
+  """
+  @spec component(page_module, page_key) :: any
+  def component(page_module, page_key) do
+    {:ok, pid} = find_or_create_page(page_module, page_key)
+    {:ok, content} = Presto.Page.render(pid)
+    content
+  end
 end

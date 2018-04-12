@@ -1,10 +1,22 @@
+defmodule Presto.PageTestMacros do
+end
+
 defmodule Presto.PageTest do
   use ExUnit.Case, async: false
+  require Presto.PageTestMacros
   alias Presto.Page
 
   setup do
     start_supervised({Registry, keys: :unique, name: Presto.PageRegistry})
     :ok
+  end
+
+  def make_response(content) do
+    %Presto.Action.UpdateComponent{
+      component_id: "presto-component-12345",
+      content: content,
+      name: "update_component"
+    }
   end
 
   defmodule PageIdFixture do
@@ -56,8 +68,8 @@ defmodule Presto.PageTest do
       {:ok, res1} = Presto.Page.update(pid1, :current)
       {:ok, res2} = Presto.Page.update(pid2, :current)
 
-      assert res1 == {:safe, "1"}
-      assert res2 == {:safe, "2"}
+      assert res1 == make_response("1")
+      assert res2 == make_response("2")
     end
   end
 
@@ -72,7 +84,7 @@ defmodule Presto.PageTest do
 
       {:ok, res} = Presto.Page.update(pid, :current)
 
-      assert res == {:safe, "4"}
+      assert res == make_response("4")
     end
   end
 
@@ -94,8 +106,18 @@ defmodule Presto.PageTest do
       {:ok, result1} = Presto.Page.update(pid, :current)
       {:ok, result2} = Presto.Page.update(pid, :inc)
 
+      assert result1 == make_response("1")
+      assert result2 == make_response("2")
+    end
+  end
+
+  describe "render/1" do
+    test "renders the current state" do
+      {:ok, pid} = Page.start_link(UpdateFixture, "visitor1", 1)
+
+      {:ok, result1} = Presto.Page.render(pid)
+
       assert result1 == {:safe, "1"}
-      assert result2 == {:safe, "2"}
     end
   end
 
@@ -110,14 +132,15 @@ defmodule Presto.PageTest do
 
   describe "index/1" do
     test "returns initial content" do
-      {:ok, pid} = Page.start_link(IndexFixture, "visitor1", 1)
+      {:ok, _pid} = Page.start_link(IndexFixture, "visitor1", 1)
       assigns = %{visitor_id: "visitor1"}
 
-      assert {:safe, "1"} = IndexFixture.index(assigns)
+      response = make_response("1")
+      assert ^response = IndexFixture.index(assigns)
     end
 
     test "is overridable" do
-      {:ok, pid} = Page.start_link(IndexOverriddenFixture, "visitor1", 1)
+      {:ok, _pid} = Page.start_link(IndexOverriddenFixture, "visitor1", 1)
       assigns = %{visitor_id: "visitor1"}
 
       assert {:safe, "something else"} = IndexOverriddenFixture.index(assigns)

@@ -1,9 +1,12 @@
 defmodule Presto.Page do
   use GenServer, restart: :transient
 
+  @typedoc "Guaranteed to be safe"
+  @type safe :: {:safe, iodata}
+
   @type message :: term()
   @type model :: term()
-  @type assigns :: Keyword.t | map
+  @type assigns :: Keyword.t() | map
 
   # Plug.Conn callbacks
   @callback init(Plug.opts()) :: Plug.opts()
@@ -14,10 +17,10 @@ defmodule Presto.Page do
   @callback key_spec(Presto.page_key()) :: term()
 
   # State, update, and render
-  @callback index(assigns()) :: Phoenix.HTML.safe()
+  @callback index(assigns()) :: safe()
   @callback initial_model(model()) :: term()
   @callback update(message(), model()) :: model()
-  @callback render(model()) :: Phoenix.HTML.safe()
+  @callback render(model()) :: safe()
 
   defmacro __using__(_opts) do
     quote location: :keep do
@@ -85,7 +88,15 @@ defmodule Presto.Page do
   rendered content.
   """
   def update(page, message) do
-    GenServer.call(page, message)
+    GenServer.call(page, {:update, message})
+  end
+
+  @doc """
+  Sends an update message to the page, returning the newly
+  rendered content.
+  """
+  def render(page) do
+    GenServer.call(page, :render)
   end
 
   ######################
@@ -101,13 +112,30 @@ defmodule Presto.Page do
   end
 
   @doc """
+  Renders the current state by calling `render(model)` with the
+  current model state.
+  """
+  def handle_call(:render, _from, state) do
+    reply = {:ok, do_render(state)}
+    {:reply, reply, state}
+  end
+
+  @doc """
   Performs an update operation by calling `update(message, model)`
   on the page_module module from `init`
   """
-  def handle_call(message, _from, state) do
+  def handle_call({:update, message}, _from, state) do
     new_state = do_update(message, state)
 
-    reply = {:ok, do_render(new_state)}
+    content =
+      new_state
+      |> do_render()
+      |> safe_to_string()
+
+    # TODO: figure out component_id/security mapping
+    reply =
+      {:ok,
+       %Presto.Action.UpdateComponent{component_id: "presto-component-12345", content: content}}
 
     {:reply, reply, new_state}
   end
@@ -127,5 +155,15 @@ defmodule Presto.Page do
 
   defp via_tuple(page_key) do
     {:via, Registry, {Presto.PageRegistry, page_key}}
+  end
+
+  """
+  Fails if the result is not safe. In such cases, you can
+  invoke `html_escape/1` or `raw/1` accordingly before.
+  """
+
+  @spec safe_to_string(safe) :: String.t()
+  defp safe_to_string({:safe, iodata}) do
+    IO.iodata_to_binary(iodata)
   end
 end
