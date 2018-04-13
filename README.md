@@ -11,6 +11,16 @@ Router:
   forward("/", Presto.Root)
 ```
 
+package.json
+```
+  ...
+  "dependencies": {
+    "presto": "file:../deps/presto",
+  },
+  ...
+```
+
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
