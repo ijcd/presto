@@ -10,7 +10,7 @@
 *     import "presto"
 *     import unpoly from "unpoly/dist/unpoly.js"
 *
-*     let presto = new Presto(channel, unpoly);
+*     let presto = new Presto(channel, up);
 * ```
 *
 * @module presto
