@@ -3,12 +3,12 @@ defmodule Presto.Action do
 
   defmodule UpdateComponent do
     defstruct name: "update_component",
-              component_id: nil,
+              component_selector: nil,
               content: nil
 
     @type t :: %__MODULE__{
             name: String.t(),
-            component_id: String.t(),
+            component_selector: String.t(),
             content: String.t()
           }
   end

@@ -1,8 +1,8 @@
 defmodule Presto.Page do
   use GenServer, restart: :transient
-
-  @typedoc "Guaranteed to be safe"
-  @type safe :: {:safe, iodata}
+  import Kernel, except: [div: 2]
+  import Taggart.HTML, only: [div: 2]
+  alias Presto.Util
 
   @type message :: term()
   @type model :: term()
@@ -17,10 +17,9 @@ defmodule Presto.Page do
   @callback key_spec(Presto.page_key()) :: term()
 
   # State, update, and render
-  @callback index(assigns()) :: safe()
   @callback initial_model(model()) :: term()
   @callback update(message(), model()) :: model()
-  @callback render(model()) :: safe()
+  @callback render(model()) :: Util.safe()
 
   defmacro __using__(_opts) do
     quote location: :keep do
@@ -34,7 +33,8 @@ defmodule Presto.Page do
 
       def call(conn, :index) do
         assigns = Map.put(conn.assigns, :conn, conn)
-        {:safe, body} = index(assigns)
+
+        {:safe, body} = Presto.component(__MODULE__, page_id(assigns))
 
         conn
         |> Plug.Conn.put_resp_header("content-type", "text/html; charset=utf-8")
@@ -43,11 +43,6 @@ defmodule Presto.Page do
 
       def page_id(assigns) do
         assigns.visitor_id
-      end
-
-      def index(assigns) do
-        {:ok, content} = Presto.dispatch(__MODULE__, page_id(assigns), :current)
-        content
       end
 
       def update(_message, model), do: model
@@ -130,12 +125,16 @@ defmodule Presto.Page do
     content =
       new_state
       |> do_render()
-      |> safe_to_string()
+      |> Util.safe_to_string()
 
-    # TODO: figure out component_id/security mapping
+    component_selector = ".presto-component##{component_id(state.page_key)}"
+
     reply =
       {:ok,
-       %Presto.Action.UpdateComponent{component_id: "presto-component-12345", content: content}}
+       %Presto.Action.UpdateComponent{
+         component_selector: component_selector,
+         content: content
+       }}
 
     {:reply, reply, new_state}
   end
@@ -149,21 +148,17 @@ defmodule Presto.Page do
     %{state | model: new_model}
   end
 
-  defp do_render(%{model: model, page_module: page_module}) do
-    page_module.render(model)
+  defp do_render(%{model: model, page_module: page_module, page_key: page_key}) do
+    div(class: "presto-component", id: component_id(page_key)) do
+      page_module.render(model)
+    end
+  end
+
+  defp component_id(page_key) do
+    Base.encode16(page_key)
   end
 
   defp via_tuple(page_key) do
     {:via, Registry, {Presto.PageRegistry, page_key}}
-  end
-
-  """
-  Fails if the result is not safe. In such cases, you can
-  invoke `html_escape/1` or `raw/1` accordingly before.
-  """
-
-  @spec safe_to_string(safe) :: String.t()
-  defp safe_to_string({:safe, iodata}) do
-    IO.iodata_to_binary(iodata)
   end
 end

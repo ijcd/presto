@@ -13,8 +13,8 @@ defmodule Presto.Mixfile do
       app: :presto,
       version: @version,
       elixir: "~> 1.5",
-      elixirc_paths: elixirc_paths(Mix.env),
-      start_permanent: Mix.env == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
+      start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
 
@@ -52,6 +52,7 @@ defmodule Presto.Mixfile do
       # docs
       {:ex_doc, "~> 0.16.4", only: :dev, runtime: false},
       {:earmark, "~> 1.2", only: :dev, runtime: false},
+      {:taggart, "~> 0.1"},
 
       # dev/test
       {:mix_test_watch, "~> 0.3", only: [:dev, :test], runtime: false},

@@ -55,10 +55,16 @@ class Presto {
     // Attach a delegated event handler
     this.allEventNames.forEach(function(eventName) {
       var eventName = eventName.replace(/^on/, "");
-      $("body").on(eventName, ".presto-" + eventName, function(event) {
-        var $elem = $(this);
-        $elem = $(event.target);
-        self.push(eventName, $elem);
+      var prestoClass = ".presto-" + eventName;
+
+      // events attached to internal elements
+      $("body").on(eventName, prestoClass, function(event) {
+        self.pushEvent(eventName, event);
+      });
+
+      // events attached to the body
+      $("body" + prestoClass).on(eventName, function(event) {
+        self.pushEvent(eventName, event);
       });
     });
 
@@ -70,9 +76,9 @@ class Presto {
 
           self.runPreUpdateHooks(payload);
 
-          var {component_id: component_id, content: content} = payload;
+          var {component_selector: component_selector, content: content} = payload;
           var focused = document.activeElement;
-          self.unpoly.extract("#" + component_id, content);
+          self.unpoly.extract(component_selector, content);
           $(focused).focus();
 
           self.runPostUpdateHooks(payload);
@@ -94,12 +100,15 @@ class Presto {
     this.stateChangeCallbacks.postUpdate.forEach( callback => callback(payload) )
   }
 
-  push(eventName, $elem) {
+  pushEvent(eventName, event) {
+    var $elem = $(event.target);
     this.channel.push("presto", {
       element: $elem.prop('tagName'),
       event: eventName,
+      key_code: event.keyCode,
       attrs: $elem.attr(),
-      id: $elem.prop('id')
+      id: $elem.prop('id'),
+      component_id: $elem.parents(".presto-component").map((i, e) => e.id).toArray().reverse(),
     });
   }
 }

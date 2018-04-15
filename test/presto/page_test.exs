@@ -11,10 +11,12 @@ defmodule Presto.PageTest do
     :ok
   end
 
-  def make_response(content) do
+  def make_response(content, page_key \\ "visitor1") do
+    component_id = Base.encode16(page_key)
+
     %Presto.Action.UpdateComponent{
-      component_id: "presto-component-12345",
-      content: content,
+      component_selector: ".presto-component##{component_id}",
+      content: "<div class=\"presto-component\" id=\"#{component_id}\">#{content}</div>",
       name: "update_component"
     }
   end
@@ -69,7 +71,7 @@ defmodule Presto.PageTest do
       {:ok, res2} = Presto.Page.update(pid2, :current)
 
       assert res1 == make_response("1")
-      assert res2 == make_response("2")
+      assert res2 == make_response("2", "visitor2")
     end
   end
 
@@ -117,33 +119,22 @@ defmodule Presto.PageTest do
 
       {:ok, result1} = Presto.Page.render(pid)
 
-      assert result1 == {:safe, "1"}
-    end
-  end
-
-  defmodule IndexFixture do
-    use Presto.Page
-  end
-
-  defmodule IndexOverriddenFixture do
-    use Presto.Page
-    def index(_conn), do: {:safe, "something else"}
-  end
-
-  describe "index/1" do
-    test "returns initial content" do
-      {:ok, _pid} = Page.start_link(IndexFixture, "visitor1", 1)
-      assigns = %{visitor_id: "visitor1"}
-
-      response = make_response("1")
-      assert ^response = IndexFixture.index(assigns)
-    end
-
-    test "is overridable" do
-      {:ok, _pid} = Page.start_link(IndexOverriddenFixture, "visitor1", 1)
-      assigns = %{visitor_id: "visitor1"}
-
-      assert {:safe, "something else"} = IndexOverriddenFixture.index(assigns)
+      assert result1 ==
+               {:safe,
+                [
+                  60,
+                  "div",
+                  [
+                    [32, "class", 61, 34, "presto-component", 34],
+                    [32, "id", 61, 34, "76697369746F7231", 34]
+                  ],
+                  62,
+                  "1",
+                  60,
+                  47,
+                  "div",
+                  62
+                ]}
     end
   end
 end
