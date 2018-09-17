@@ -1,0 +1,19 @@
+{
+  "name": "presto",
+  "version": "0.1.2",
+  "description": "The official JavaScript client for Presto.",
+  "license": "Apache-2.0",
+  "main": "./priv/static/presto.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ijcd/presto.git"
+  },
+  "author": "Ian Duggan <ian@ianduggan.net>",
+  "files": [
+    "README.md",
+    "LICENSE.md",
+    "package.json",
+    "priv/static/presto.js",
+    "assets/js/presto.js"
+  ]
+}

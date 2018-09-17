@@ -2,7 +2,7 @@ defmodule Presto.Mixfile do
   use Mix.Project
 
   @name "Presto"
-  @version "0.1.0"
+  @version "0.1.2"
   @maintainers ["Ian Duggan"]
   @licenses ["Apache 2.0"]
   @source_url "https://github.com/ijcd/presto"
@@ -64,7 +64,7 @@ defmodule Presto.Mixfile do
   defp package do
     [
       description: @description,
-      files: ["lib", "config", "mix.exs", "README*"],
+      files: ~w(lib priv config mix.exs README* LICENSE.md package.json),
       maintainers: @maintainers,
       licenses: @licenses,
       links: %{GitHub: @source_url}

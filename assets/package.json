@@ -1,0 +1,26 @@
+{
+  "name": "presto",
+  "version": "0.1.1",
+  "description": "The official JavaScript client for Presto.",
+  "license": "Apache-2.0",
+  "main": "./priv/static/presto.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ijcd/presto.git"
+  },
+  "author": "Ian Duggan <ian@ianduggan.net>",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.3",
+    "babel-preset-env": "^1.6.1",
+    "documentation": "^4.0.0-rc.1",
+    "expose-loader": "^0.7.5",
+    "webpack": "4.0.0",
+    "webpack-cli": "^2.0.10"
+  },
+  "scripts": {
+    "docs": "documentation build js/presto.js -f html -o ../doc/js",
+    "build": "webpack --mode production",
+    "watch": "webpack --mode development --watch"
+  }
+}

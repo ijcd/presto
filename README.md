@@ -70,7 +70,7 @@ by adding `presto` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:presto, "~> 0.1.0"}
+    {:presto, "~> 0.1.2"}
   ]
 end
 ```
