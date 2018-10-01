@@ -1,6 +1,5 @@
 defmodule Presto.Component do
   use GenServer, restart: :transient
-  import Kernel, except: [div: 2]
   alias Presto.Util
 
   @type message :: term()
@@ -11,10 +10,6 @@ defmodule Presto.Component do
   @callback init(Plug.opts()) :: Plug.opts()
   @callback call(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
 
-  # Component addressing
-  @callback component_id(assigns) :: term()
-  @callback key_spec(Presto.component_key()) :: term()
-
   # State, update, and render
   @callback initial_model(model()) :: term()
   @callback update(message(), model()) :: model()
@@ -24,24 +19,16 @@ defmodule Presto.Component do
     quote location: :keep do
       @behaviour Presto.Component
 
-      def key_spec(component_key) do
-        {__MODULE__, component_key}
-      end
-
       def init([]), do: :index
 
       def call(conn, :index) do
         assigns = Map.put(conn.assigns, :conn, conn)
 
-        {:safe, body} = Presto.component(__MODULE__, component_id(assigns))
+        {:safe, body} = Presto.component(__MODULE__)
 
         conn
         |> Plug.Conn.put_resp_header("content-type", "text/html; charset=utf-8")
         |> Plug.Conn.send_resp(200, body)
-      end
-
-      def component_id(assigns) do
-        assigns.visitor_id
       end
 
       def update(_message, model), do: model
@@ -60,19 +47,18 @@ defmodule Presto.Component do
 
   defmodule State do
     defstruct component_module: nil,
-              component_key: nil,
+              component_id: nil,
               model: %{}
   end
 
   @doc """
   Starts a `Presto.Component` GenServer
   """
-  def start_link(component_module, component_key, initial_model \\ %{}) do
-    key_spec = component_module.key_spec(component_key)
-    name = via_tuple(key_spec)
+  def start_link(component_module, component_id, initial_model \\ %{}) do
+    name = via_tuple(component_id)
     model = component_module.initial_model(initial_model)
 
-    initial_state = %State{component_key: component_key, component_module: component_module, model: model}
+    initial_state = %State{component_id: component_id, component_module: component_module, model: model}
 
     GenServer.start_link(__MODULE__, initial_state, name: name)
   end
@@ -126,7 +112,7 @@ defmodule Presto.Component do
       |> do_render()
       |> Util.safe_to_string()
 
-    component_selector = ".presto-component##{component_id(state.component_key)}"
+    component_selector = ".presto-component##{state.component_id}"
 
     reply =
       {:ok,
@@ -147,16 +133,12 @@ defmodule Presto.Component do
     %{state | model: new_model}
   end
 
-  defp do_render(%{model: model, component_module: component_module, component_key: component_key}) do
+  defp do_render(%{model: model, component_module: component_module, component_id: component_id}) do
     content = component_module.render(model)
-    Phoenix.HTML.Tag.content_tag(:div, content, class: "presto-component", id: component_id(component_key))
+    Phoenix.HTML.Tag.content_tag(:div, content, class: "presto-component", id: component_id)
   end
 
-  defp component_id(component_key) do
-    Base.encode16(component_key)
-  end
-
-  defp via_tuple(component_key) do
-    {:via, Registry, {Presto.ComponentRegistry, component_key}}
+  defp via_tuple(component_id) do
+    {:via, Registry, {Presto.ComponentRegistry, component_id}}
   end
 end

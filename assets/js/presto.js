@@ -108,7 +108,7 @@ class Presto {
       key_code: event.keyCode,
       attrs: $elem.attr(),
       id: $elem.prop('id'),
-      component_id: $elem.parents(".presto-component").map((i, e) => e.id).toArray().reverse(),
+      component_id: $elem.parents(".presto-component").map((i, e) => e.id).toArray().reverse()[0],
     });
   }
 }

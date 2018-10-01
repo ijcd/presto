@@ -4,7 +4,7 @@ defmodule Presto.Util do
 
   @doc """
   Fails if the result is not safe. In such cases, you can
-  invoke `html_escape/1` or `raw/1` accordingly before.
+  invoke `html_escape/1` or `raw/1`.
   """
   @spec safe_to_string(safe) :: String.t()
   def safe_to_string({:safe, iodata}) do

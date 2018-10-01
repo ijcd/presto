@@ -7,7 +7,7 @@ defmodule Presto.ComponentSupervisor do
   `Presto.Component.start_link` function.
 
   Functions contained in this supervisor module will assist in the
-  creation and retrieval of new page processes.
+  creation and retrieval of new component processes.
   """
 
   use DynamicSupervisor
@@ -27,14 +27,11 @@ defmodule Presto.ComponentSupervisor do
   @doc """
   Starts a supervised Presto.Component process.
   """
-  @spec start_component(Presto.component_module(), Presto.component_key(), Presto.Component.model()) :: term()
-  def start_component(component_module, component_key, initial_model \\ %{}) do
-    # @spec start_component(Presto.component_module(), Presto.component_key()) :: term()
-    # def start_component(component_module, component_key) do
+  @spec start_component(Presto.component_module(), Presto.component_id(), Presto.Component.model()) :: term()
+  def start_component(component_module, component_id, initial_model \\ %{}) do
     spec = %{
       id: Presto.Component,
-      # start: {Presto.Component, :start_link, [component_module, component_key, initial_model]},
-      start: {Presto.Component, :start_link, [component_module, component_key, initial_model]},
+      start: {Presto.Component, :start_link, [component_module, component_id, initial_model]},
       restart: :transient
     }
 

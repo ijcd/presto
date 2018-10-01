@@ -11,9 +11,7 @@ defmodule Presto.ComponentTest do
     :ok
   end
 
-  def make_response(content, component_key \\ "visitor1") do
-    component_id = Base.encode16(component_key)
-
+  def make_response(content, component_id \\ "visitor1") do
     %Presto.Action.UpdateComponent{
       component_selector: ".presto-component##{component_id}",
       content: "<div class=\"presto-component\" id=\"#{component_id}\">#{content}</div>",
