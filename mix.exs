@@ -52,7 +52,8 @@ defmodule Presto.Mixfile do
       # docs
       {:ex_doc, "~> 0.16.4", only: :dev, runtime: false},
       {:earmark, "~> 1.2", only: :dev, runtime: false},
-      {:taggart, "~> 0.1"},
+      {:phoenix_html, "~> 2.10"},
+      # {:taggart, "~> 0.1"},
 
       # dev/test
       {:mix_test_watch, "~> 0.3", only: [:dev, :test], runtime: false},

@@ -57,16 +57,16 @@ mix.exs
 lib/presto/single_counter.ex
 ```elixir
 defmodule PrestoDemoWeb.Presto.SingleCounter do
-  use Presto.Page
+  use Presto.Component
   use Taggart.HTML
   require Logger
 
-  @impl Presto.Page
+  @impl Presto.Component
   def initial_model(_model) do
     0
   end
 
-  @impl Presto.Page
+  @impl Presto.Component
   def update(message, model) do
     case message do
       %{"event" => "click", "id" => "inc"} ->
@@ -77,7 +77,7 @@ defmodule PrestoDemoWeb.Presto.SingleCounter do
     end
   end
 
-  @impl Presto.Page
+  @impl Presto.Component
   def render(model) do
     div do
       "Counter is: #{inspect(model)}"
@@ -128,7 +128,7 @@ user_socker.ex
 defmodule PrestoDemoWeb.UserSocket do
   use Phoenix.Socket
 
-  channel("page:*", PrestoDemoWeb.PageChannel)
+  channel("presto:*", PrestoDemoWeb.CounterChannel)
 
   def connect(%{"token" => token} = _params, socket) do
     case PrestoDemoWeb.Session.decode_socket_token(token) do
@@ -142,14 +142,14 @@ defmodule PrestoDemoWeb.UserSocket do
   ...
 ```
 
-page_channel.ex
+component_channel.ex
 ```elixir
-defmodule PrestoDemoWeb.PageChannel do
+defmodule PrestoDemoWeb.CounterChannel do
   ...
   def handle_in("presto", payload, socket) do
     %{visitor_id: visitor_id} = socket.assigns
 
-    # send event to presto page
+    # send event to presto component
     {:ok, dispatch} = Presto.dispatch(PrestoDemoWeb.Presto.SingleCounter, visitor_id, payload)
 
     case dispatch do

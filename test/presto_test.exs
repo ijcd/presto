@@ -3,17 +3,17 @@ defmodule PrestoTest do
   # doctest Presto
 
   setup do
-    start_supervised({Registry, keys: :unique, name: Presto.PageRegistry})
-    start_supervised(Presto.PageSupervisor)
+    start_supervised({Registry, keys: :unique, name: Presto.ComponentRegistry})
+    start_supervised(Presto.ComponentSupervisor)
     :ok
   end
 
-  defmodule CounterPage do
-    use Presto.Page
+  defmodule CounterComponent do
+    use Presto.Component
 
     def update(message, model) do
       case message do
-        :current-> model
+        :current -> model
         :inc -> model + 1
       end
     end
@@ -23,65 +23,65 @@ defmodule PrestoTest do
     end
   end
 
-  defmodule CounterPage2 do
-    use Presto.Page
+  defmodule CounterComponent2 do
+    use Presto.Component
   end
 
-  describe "create_page/2" do
-    test "creates a page" do
-      {:ok, pid} = Presto.create_page(CounterPage, 1)
+  describe "create_component/2" do
+    test "creates a component" do
+      {:ok, pid} = Presto.create_component(CounterComponent, 1)
       assert is_pid(pid)
     end
 
-    test "creates several pages" do
-      {:ok, _pid} = Presto.create_page(CounterPage, 1)
-      {:ok, _pid} = Presto.create_page(CounterPage, 2)
-      {:ok, _pid} = Presto.create_page(CounterPage, 3)
+    test "creates several components" do
+      {:ok, _pid} = Presto.create_component(CounterComponent, 1)
+      {:ok, _pid} = Presto.create_component(CounterComponent, 2)
+      {:ok, _pid} = Presto.create_component(CounterComponent, 3)
     end
 
-    test "fails to create duplicate page" do
-      {:ok, _pid} = Presto.create_page(CounterPage, 1)
-      {:error, :process_already_exists} = Presto.create_page(CounterPage, 1)
+    test "fails to create duplicate component" do
+      {:ok, _pid} = Presto.create_component(CounterComponent, 1)
+      {:error, :process_already_exists} = Presto.create_component(CounterComponent, 1)
     end
 
-    test "page_ids are scoped by module" do
-      {:ok, _pid} = Presto.create_page(CounterPage, 1)
-      {:ok, _pid} = Presto.create_page(CounterPage2, 1)
+    test "component_ids are scoped by module" do
+      {:ok, _pid} = Presto.create_component(CounterComponent, 1)
+      {:ok, _pid} = Presto.create_component(CounterComponent2, 1)
     end
   end
 
-  describe "find_page/2" do
-    test "finds a page" do
-      {:ok, _pid} = Presto.create_page(CounterPage, 1)
-      {:ok, pid} = Presto.find_page(CounterPage, 1)
+  describe "find_component/2" do
+    test "finds a component" do
+      {:ok, _pid} = Presto.create_component(CounterComponent, 1)
+      {:ok, pid} = Presto.find_component(CounterComponent, 1)
       assert is_pid(pid)
     end
 
-    test "fails to find a page" do
-      {:error, :no_such_page} = Presto.find_page(CounterPage, 1)
+    test "fails to find a component" do
+      {:error, :no_such_component} = Presto.find_component(CounterComponent, 1)
     end
   end
 
-  describe "find_or_create_page/2" do
-    test "creates a page if non-existent" do
-      {:ok, pid} = Presto.find_or_create_page(CounterPage, 1)
+  describe "find_or_create_component/2" do
+    test "creates a component if non-existent" do
+      {:ok, pid} = Presto.find_or_create_component(CounterComponent, 1)
       assert is_pid(pid)
     end
 
-    test "returns existing page" do
-      {:ok, pid} = Presto.create_page(CounterPage, 1)
-      {:ok, ^pid} = Presto.find_or_create_page(CounterPage, 1)
+    test "returns existing component" do
+      {:ok, pid} = Presto.create_component(CounterComponent, 1)
+      {:ok, ^pid} = Presto.find_or_create_component(CounterComponent, 1)
     end
   end
 
-  describe "page_exists?/2" do
-    test "false if page does not exist" do
-      refute Presto.page_exists?(CounterPage, 1)
+  describe "component_exists?/2" do
+    test "false if component does not exist" do
+      refute Presto.component_exists?(CounterComponent, 1)
     end
 
-    test "returns existing page" do
-      {:ok, _pid} = Presto.create_page(CounterPage, 1)
-      assert Presto.page_exists?(CounterPage, 1)
+    test "returns existing component" do
+      {:ok, _pid} = Presto.create_component(CounterComponent, 1)
+      assert Presto.component_exists?(CounterComponent, 1)
     end
   end
 end

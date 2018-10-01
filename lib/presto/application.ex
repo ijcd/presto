@@ -8,8 +8,8 @@ defmodule Presto.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      {Registry, keys: :unique, name: Presto.PageRegistry},
-      {Presto.PageSupervisor, []}
+      {Registry, keys: :unique, name: Presto.ComponentRegistry},
+      {Presto.ComponentSupervisor, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
