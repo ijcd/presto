@@ -84,9 +84,25 @@ defmodule Presto do
   """
   @spec component(component_module) :: any
   def component(component_module) do
-    component_id = :crypto.strong_rand_bytes(16) |> Base.encode16()
-    {:ok, pid} = find_or_create_component(component_module, component_id)
+    component_id = :crypto.strong_rand_bytes(16)
+    component(component_module, component_id)
+  end
+
+  @spec component(component_module, component_id) :: any
+  def component(component_module, component_id) do
+    {:ok, pid} = find_or_create_component(component_module, encode_id(component_id))
     {:ok, content} = Presto.Component.render(pid)
     content
+  end
+
+  defp encode_id(id) do
+    Phoenix.Token.sign(PrestoDemoWeb.Endpoint, "component salt", id)
+    |> Base.url_encode64()
+  end
+
+  defp decode_id(text) do
+    text
+    |> Base.url_decode64()
+    |> (&(Phoenix.Token.verify(MyApp.Endpoint, "component salt", &1, max_age: 86400*30))).()
   end
 end
