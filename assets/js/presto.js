@@ -102,13 +102,17 @@ class Presto {
 
   pushEvent(eventName, event) {
     var $elem = $(event.target);
+    var $component = $elem.parents(".presto-component").toArray().reverse()[0];
+    var $instance = $elem.parents(".presto-component-root").toArray().reverse()[0];
+
     this.channel.push("presto", {
       element: $elem.prop('tagName'),
       event: eventName,
       key_code: event.keyCode,
       attrs: $elem.attr(),
       id: $elem.prop('id'),
-      component_id: $elem.parents(".presto-component").map((i, e) => e.id).toArray().reverse()[0],
+      component_id: $component.id,
+      instance_id: $instance.id,
     });
   }
 }

@@ -52,23 +52,23 @@ defmodule Presto do
     end
   end
 
-  # @doc """
-  # Determines if a `Presto.Component` process exists, based on the `component_key`
-  # provided.  Returns a boolean.
+  @doc """
+  Determines if a `Presto.Component` process exists, based on the `component_key`
+  provided.  Returns a boolean.
 
-  # ## Example
+  ## Example
 
-  #     iex> Presto.component_exists?(DemoComponent, 6)
-  #     false
+      iex> Presto.component_exists?(DemoComponent, 6)
+      false
 
-  # """
-  # @spec component_exists?(component_module, component_key) :: boolean
-  # def component_exists?(component_module, component_key) do
-  #   case find_component(component_module, component_key) do
-  #     {:error, :no_such_component} -> false
-  #     {:ok, pid} when is_pid(pid) -> true
-  #   end
-  # end
+  """
+  @spec component_exists?(component_id) :: boolean
+  def component_exists?(component_id) do
+    case find_component(component_id) do
+      {:error, :no_such_component} -> false
+      {:ok, pid} when is_pid(pid) -> true
+    end
+  end
 
   @doc """
   Send an event to a component.

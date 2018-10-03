@@ -22,5 +22,8 @@
     "docs": "documentation build js/presto.js -f html -o ../doc/js",
     "build": "webpack --mode production",
     "watch": "webpack --mode development --watch"
+  },
+  "dependencies": {
+    "unpoly": "^0.57.0"
   }
 }
