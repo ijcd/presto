@@ -91,8 +91,12 @@ defmodule Presto do
   @spec component(component_module, component_id) :: any
   def component(component_module, component_id) do
     {:ok, pid} = find_or_create_component(component_module, encode_id(component_id))
-    {:ok, content} = Presto.Component.render(pid)
-    content
+
+    instance_id = :crypto.strong_rand_bytes(32) |> Base.url_encode64()
+    {:ok, component} = Presto.Component.render(pid)
+    instance = Phoenix.HTML.Tag.content_tag(:div, component, class: "presto-component-instance", id: instance_id)
+
+    instance
   end
 
   defp encode_id(id) do

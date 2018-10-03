@@ -134,11 +134,8 @@ defmodule Presto.Component do
   end
 
   defp do_render(%{model: model, component_module: component_module, component_id: component_id}) do
-    instance_id = :crypto.strong_rand_bytes(32) |> Base.url_encode64()
     content = component_module.render(model)
-    Phoenix.HTML.Tag.content_tag(:div, class: "presto-component-root", id: instance_id) do
-      Phoenix.HTML.Tag.content_tag(:div, content, class: "presto-component", id: component_id)
-    end
+    Phoenix.HTML.Tag.content_tag(:div, content, class: "presto-component", id: component_id)
   end
 
   defp via_tuple(component_id) do

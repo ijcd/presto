@@ -69,6 +69,8 @@ class Presto {
     });
 
     this.channel.on("presto", payload => {
+      console.log("RECEIVED", payload)
+
       var {name: name} = payload;
 
       switch (name) {
@@ -77,9 +79,22 @@ class Presto {
           self.runPreUpdateHooks(payload);
 
           var {component_selector: component_selector, content: content} = payload;
+
+          var matchingComponents = $.find(component_selector);
+          console.log("MATCHING", matchingComponents)
+
           var focused = document.activeElement;
-          self.unpoly.extract(component_selector, content);
+          $.each(matchingComponents, function(index, component) {
+            console.log("COMPONENT", index, component);
+            var instance = $(component).parents(".presto-component-root").toArray().reverse()[0];
+            console.log("INSTANCE", instance)
+            // debugger
+            self.unpoly.extract(component_selector, content, {
+              origin: instance
+            });
+          })
           $(focused).focus();
+
 
           self.runPostUpdateHooks(payload);
 
@@ -103,17 +118,25 @@ class Presto {
   pushEvent(eventName, event) {
     var $elem = $(event.target);
     var $component = $elem.parents(".presto-component").toArray().reverse()[0];
-    var $instance = $elem.parents(".presto-component-root").toArray().reverse()[0];
+    var $instance = $elem.parents(".presto-component-instance").toArray().reverse()[0];
 
-    this.channel.push("presto", {
+    var fullEvent = eventName;
+    if (event.keyCode) {
+      fullEvent = [eventName, event.keyCode]
+    }
+
+    var prestoEvent = {
       element: $elem.prop('tagName'),
-      event: eventName,
-      key_code: event.keyCode,
+      event: fullEvent,
       attrs: $elem.attr(),
       id: $elem.prop('id'),
       component_id: $component.id,
       instance_id: $instance.id,
-    });
+    }
+
+    console.log("SENDING", prestoEvent)
+
+    this.channel.push("presto", prestoEvent);
   }
 }
 
