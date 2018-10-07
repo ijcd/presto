@@ -11,9 +11,8 @@
 <script src="https://unpkg.com/mocha@4.0.1/mocha.js"></script>
 
 <script>mocha.setup('bdd')</script>
-<script src="js/sum.js"></script>
-<script src="tests/sum.test.js"></script>
-<script>
+<script type="module" src="tests/sum.test.js"></script>
+<script type="module">
     mocha.checkLeaks();
     mocha.run();
 </script>
