@@ -1,4 +1,4 @@
-import './tests/sum.test.js';
+import './tests/presto.test.js';
 
 mocha.checkLeaks();
 mocha.run();

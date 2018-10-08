@@ -19,5 +19,11 @@ module.exports = {
       }
     ]
   },
-  plugins: []
+  plugins: [
+    // // expose $ and jQuery to global scope.
+    // new webpack.ProvidePlugin({
+    //   $: 'cash',
+    //   // cash: 'cash'
+    // })
+  ]
 }
