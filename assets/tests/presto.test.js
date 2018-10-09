@@ -105,7 +105,7 @@ describe('PrestoLib', () => {
         $('button#theButton').trigger('click')
         assert.equal(fired, 'click');
         fired = false;
-        
+
         $('#root').trigger('click')
         assert.equal(fired, 'click');
         fired = false;
@@ -238,13 +238,78 @@ describe('PrestoLib', () => {
             Counter is: 2
           </div>
         `)
-        
+
         assert.equal($('div.presto-component-instance#iA .presto-component#cA').text().trim(), 'Counter is: 2');
       });
 
+      it('only updates component with matching component-id', () => {
+        setRoot(`
+          <div class="presto-component-instance" id="iA">
+            <div class="presto-component" id="cA">
+              Counter is: 1
+            </div>
+          </div>        
+          <div class="presto-component-instance" id="iB">
+            <div class="presto-component" id="cB">
+              Counter is: 1
+            </div>
+          </div>        
+        `)
+
+        Presto.Component.update('cA', `
+          <div class="presto-component" id="cA">
+            Counter is: 2
+          </div>
+        `)
+
+        assert.equal($('div.presto-component-instance#iA .presto-component#cA').text().trim(), 'Counter is: 2');
+        assert.equal($('div.presto-component-instance#iB .presto-component#cB').text().trim(), 'Counter is: 1');
+      });
+
+      it('updates all components with same component-id', () => {
+        setRoot(`
+          <div class="presto-component-instance" id="iA">
+            <div class="presto-component" id="cA">
+              Counter is: 1
+            </div>
+          </div>        
+          <div class="presto-component-instance" id="iB">
+            <div class="presto-component" id="cA">
+              Counter is: 1
+            </div>
+          </div>        
+        `)
+
+        Presto.Component.update('cA', `
+          <div class="presto-component" id="cA">
+            Counter is: 2
+          </div>
+        `)
+
+        assert.equal($('div.presto-component-instance#iA .presto-component#cA').text().trim(), 'Counter is: 2');
+        assert.equal($('div.presto-component-instance#iB .presto-component#cA').text().trim(), 'Counter is: 2');
+      });
+
+
       it('preserves focus', () => {
+        setRoot(`
+          <div class="presto-component-instance" id="iA">
+            <div class="presto-component" id="cA">
+              Counter is: 1
+            </div>
+          </div>        
+        `)
+
+        $('#cA').focus()
         var startingActive = document.activeElement;
-        // TODO: how to test?
+
+        Presto.Component.update('cA', `
+          <div class="presto-component" id="cA">
+            Counter is: 2
+          </div>
+        `)
+
+        assert.equal($('div.presto-component-instance#iA .presto-component#cA').text().trim(), 'Counter is: 2');
         assert.equal(document.activeElement, startingActive);
       });
     });
