@@ -18,7 +18,9 @@
 * @module presto
 */
 
-import $ from 'cash-dom'
+// import $ from 'cash-dom'
+import unpoly from 'unpoly'
+up.log.enable();
 
 export class Component {
 
@@ -42,11 +44,31 @@ export class Component {
       } 
 
       // add instance to instances set, 
-      instances.add(pci);
+      instances.add(pci.id);
       m.set(pcc.id, instances);
     });
 
     return m;
+  }
+
+  static update(componentId, content) {
+    var focused = document.activeElement;
+    try {
+      Component.doUpdate(componentId, content);
+    } 
+    finally {
+      focused.focus();
+    }
+  }
+
+  static doUpdate(componentId, content) {
+    // TODO: implement this by listening for DOM mutation events instead (don't scan every time)
+    var components = Component.scan();
+
+    for (var instanceId of components.get(componentId)) {
+      var decorated = `<div class="presto-component-instance" id="${instanceId}">` + content + '</div>'
+      up.extract(`div.presto-component-instance#${instanceId}`, decorated);
+    }
   }
 }
 

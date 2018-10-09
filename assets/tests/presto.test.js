@@ -1,6 +1,6 @@
 'use strict'
 
-import $ from '../node_modules/cash-dom/dist/cash.esm.js'
+// import $ from '../node_modules/cash-dom/dist/cash.esm.js'
 
 var assert = chai.assert;
 
@@ -14,7 +14,9 @@ describe('PrestoLib', () => {
     setRoot('');
   });
 
-
+  ////////////////
+  // PRESTO
+  ////////////////
   describe('Presto', () => {
 
     describe('constructor', () => {
@@ -133,6 +135,10 @@ describe('PrestoLib', () => {
     });
   });
 
+
+  ////////////////
+  // COMPONENT
+  ////////////////
   describe('Component', () => {
 
     describe('scan', () => {
@@ -156,8 +162,7 @@ describe('PrestoLib', () => {
         assert.equal(ps.size, 1);
         assert.deepEqual(Array.from(ps.keys()), ['cA']);
 
-        var instanceA = document.querySelector('.presto-component-instance#iA');
-        assert(ps.get('cA').has(instanceA))
+        assert(ps.get('cA').has('iA'))
       });
 
       it('finds several components', () => {
@@ -183,12 +188,9 @@ describe('PrestoLib', () => {
         assert.equal(ps.size, 3);
         assert.deepEqual(Array.from(ps.keys()), ['cA', 'cB', 'cC']);
 
-        var instanceA = document.querySelector('.presto-component-instance#iA');
-        var instanceB = document.querySelector('.presto-component-instance#iB');
-        var instanceC = document.querySelector('.presto-component-instance#iC');
-        assert(ps.get('cA').has(instanceA))
-        assert(ps.get('cB').has(instanceB))
-        assert(ps.get('cC').has(instanceC))
+        assert(ps.get('cA').has('iA'))
+        assert(ps.get('cB').has('iB'))
+        assert(ps.get('cC').has('iC'))
       });
 
       it('finds two component instances for the same component-id', () => {
@@ -214,14 +216,37 @@ describe('PrestoLib', () => {
         assert.equal(ps.size, 2);
         assert.deepEqual(Array.from(ps.keys()), ['cA', 'cC']);
 
-        var instanceA = document.querySelector('.presto-component-instance#iA');
-        var instanceB = document.querySelector('.presto-component-instance#iB');
-        var instanceC = document.querySelector('.presto-component-instance#iC');
-        assert(ps.get('cA').has(instanceA))
-        assert(ps.get('cA').has(instanceB))
-        assert(ps.get('cC').has(instanceC))
+        assert(ps.get('cA').has('iA'))
+        assert(ps.get('cA').has('iB'))
+        assert(ps.get('cC').has('iC'))
+      });
+    });
+
+
+    describe('update', () => {
+      it('updates a component', () => {
+        setRoot(`
+          <div class="presto-component-instance" id="iA">
+            <div class="presto-component" id="cA">
+              Counter is: 1
+            </div>
+          </div>        
+        `)
+
+        Presto.Component.update('cA', `
+          <div class="presto-component" id="cA">
+            Counter is: 2
+          </div>
+        `)
+        
+        assert.equal($('div.presto-component-instance#iA .presto-component#cA').text().trim(), 'Counter is: 2');
       });
 
+      it('preserves focus', () => {
+        var startingActive = document.activeElement;
+        // TODO: how to test?
+        assert.equal(document.activeElement, startingActive);
+      });
     });
   });
 });
