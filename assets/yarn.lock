@@ -1311,9 +1311,9 @@ caseless@~0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
 
-cash-js@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/cash-js/-/cash-js-1.0.2.tgz#63dba9ee130805b7c798c028c0a81d8c6f0e1af5"
+cash-dom@^2.3.6:
+  version "2.3.6"
+  resolved "https://registry.yarnpkg.com/cash-dom/-/cash-dom-2.3.6.tgz#a86af4bb9a8f4bfa488d935e6a769ec9f5a50e97"
 
 ccount@^1.0.0:
   version "1.0.2"

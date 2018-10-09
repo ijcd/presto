@@ -28,7 +28,7 @@
     "start:dev": "webpack-dev-server"
   },
   "dependencies": {
-    "cash-js": "^1.0.2",
+    "cash-dom": "^2.3.6",
     "unpoly": "^0.57.0"
   }
 }

@@ -1,6 +1,24 @@
 'use strict'
 
-import {$, $$} from 'cash-js'
+/**
+* Presto JavaScript client
+*
+* ## Setup
+*
+* Presto needs a Phoenix channel to communiacate on. It also needs a
+* reference to an Unpoly object for DOM manipulation.
+*
+* ```javascript
+*     import "presto"
+*     import unpoly from "unpoly/dist/unpoly.js"
+*
+*     let presto = new Presto(channel, up);
+* ```
+*
+* @module presto
+*/
+
+import $ from 'cash-dom'
 
 export class Component {
 
@@ -32,76 +50,73 @@ export class Component {
   }
 }
 
-
-// /**
-// * Presto JavaScript client
-// *
-// * ## Setup
-// *
-// * Presto needs a Phoenix channel to communiacate on. It also needs a
-// * reference to an Unpoly object for DOM manipulation.
-// *
-// * ```javascript
-// *     import "presto"
-// *     import unpoly from "unpoly/dist/unpoly.js"
-// *
-// *     let presto = new Presto(channel, up);
-// * ```
-// *
-// * @module presto
-// */
-
-// // TODO: remove need to extend jQuery
-// // TODO: write some javascript tests
-
-// // Extend jQuery with attr()
-// (function(old) {
-//   $.fn.attr = function() {
-//     if(arguments.length === 0) {
-//       if(this.length === 0) {
-//         return null;
-//       }
-
-//       var obj = {};
-//       $.each(this[0].attributes, function() {
-//         if(this.specified) {
-//           obj[this.name] = this.value;
-//         }
-//       });
-//       return obj;
-//     }
-
-//     return old.apply(this, arguments);
-//   };
-// })($.fn.attr);
+// https://stackoverflow.com/questions/9368538/getting-an-array-of-all-dom-events-possible
+function allEventNames() {
+  return Object.getOwnPropertyNames(document).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(Object.getPrototypeOf(document)))).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(window))).filter(function(i){return !i.indexOf("on")&&(document[i]==null||typeof document[i]=="function");}).filter(function(elem, pos, self){return self.indexOf(elem) == pos;});
+}
 
 
-// class Presto {
-//   constructor(channel, unpoly){
-//     var self = this;
+export class Presto { 
+  constructor() {
+    this.callbacks = {
+      onEvent: [],
+      preUpdate: [],
+      postUpdate: []
+    };
+    this.eventNamespace = '.presto'
+
+    this.allEventNames = allEventNames().map((name) => {
+      return name.replace(/^on/, '');
+    });
+  }
+
+  bindEvents() {
+    var self = this;
+
+    // Attach a delegated event handler
+    this.allEventNames.forEach((eventName) => {
+      var prestoClass = '.presto-' + eventName;
+      var namespacedName = eventName + this.eventNamespace;
+
+      // events attached to internal elements
+      $('body').on(namespacedName, prestoClass, (event) => {
+        self.runEventHooks(event);
+      });
+
+      // events attached to the body
+      $('body' + prestoClass).on(namespacedName, (event) => {
+        self.runEventHooks(event);
+      });
+    });
+  }
+
+  unbindEvents() {
+    $('body').off(self.eventNamespace);
+  }
+
+  onEvent      (callback){ this.callbacks.onEvent.push(callback) }
+  onPreUpdate  (callback){ this.callbacks.preUpdate.push(callback) }
+  onPostUpdate (callback){ this.callbacks.postUpdate.push(callback) }
+
+  runEventHooks(payload){
+    this.callbacks.onEvent.forEach( callback => callback(payload) )
+  }
+
+  runPreUpdateHooks(payload){
+    this.callbacks.preUpdate.forEach( callback => callback(payload) )
+  }
+
+  runPostUpdateHooks(payload){
+    this.callbacks.postUpdate.forEach( callback => callback(payload) )
+  }
+}
+
+
 
 //     this.channel              = channel;
 //     this.unpoly               = unpoly;
-//     this.stateChangeCallbacks = {preUpdate: [], postUpdate: []};
 
-//     // pull event names out of the DOM
-//     this.allEventNames = Object.getOwnPropertyNames(document).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(Object.getPrototypeOf(document)))).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(window))).filter(function(i){return !i.indexOf("on")&&(document[i]==null||typeof document[i]=="function");}).filter(function(elem, pos, self){return self.indexOf(elem) == pos;});
 
-//     // Attach a delegated event handler
-//     this.allEventNames.forEach(function(eventName) {
-//       var eventName = eventName.replace(/^on/, "");
-//       var prestoClass = ".presto-" + eventName;
-
-//       // events attached to internal elements
-//       $("body").on(eventName, prestoClass, function(event) {
-//         self.pushEvent(eventName, event);
-//       });
-
-//       // events attached to the body
-//       $("body" + prestoClass).on(eventName, function(event) {
-//         self.pushEvent(eventName, event);
-//       });
-//     });
 
 //     this.channel.on("presto", payload => {
 //       console.log("RECEIVED", payload)
@@ -139,15 +154,15 @@ export class Component {
 //     });
 //   }
 
-//   onPreUpdate  (callback){ this.stateChangeCallbacks.preUpdate.push(callback) }
-//   onPostUpdate (callback){ this.stateChangeCallbacks.postUpdate.push(callback) }
+//   onPreUpdate  (callback){ this.callbacks.preUpdate.push(callback) }
+//   onPostUpdate (callback){ this.callbacks.postUpdate.push(callback) }
 
 //   runPreUpdateHooks(payload){
-//     this.stateChangeCallbacks.preUpdate.forEach( callback => callback(payload) )
+//     this.callbacks.preUpdate.forEach( callback => callback(payload) )
 //   }
 
 //   runPostUpdateHooks(payload){
-//     this.stateChangeCallbacks.postUpdate.forEach( callback => callback(payload) )
+//     this.callbacks.postUpdate.forEach( callback => callback(payload) )
 //   }
 
 //   pushEvent(eventName, event) {
@@ -176,3 +191,50 @@ export class Component {
 // }
 
 // export {Presto};
+
+
+
+
+// class Presto {
+//   constructor(channel, unpoly){
+//     var self = this;
+
+//     this.channel              = channel;
+//     this.unpoly               = unpoly;
+//     this.callbacks = {preUpdate: [], postUpdate: []};
+
+
+
+
+
+
+// // TODO: remove need to extend jQuery
+// // TODO: write some javascript tests
+
+// // Extend jQuery with attr()
+// (function(old) {
+//   $.fn.attr = function() {
+//     if(arguments.length === 0) {
+//       if(this.length === 0) {
+//         return null;
+//       }
+
+//       var obj = {};
+//       $.each(this[0].attributes, function() {
+//         if(this.specified) {
+//           obj[this.name] = this.value;
+//         }
+//       });
+//       return obj;
+//     }
+
+//     return old.apply(this, arguments);
+//   };
+// })($.fn.attr);
+
+
+// console.log(event);
+// // self.pushEvent(eventName, event);
+
+
+
