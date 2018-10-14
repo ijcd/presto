@@ -40,25 +40,20 @@ defmodule PrestoTest do
     end
 
     test "fails to create duplicate component" do
-      {:ok, _pid} = Presto.create_component(CounterComponent, 1)
-      {:error, :process_already_exists} = Presto.create_component(CounterComponent, 1)
-    end
-
-    test "component_ids are scoped by module" do
-      {:ok, _pid} = Presto.create_component(CounterComponent, 1)
-      {:ok, _pid} = Presto.create_component(CounterComponent2, 1)
+      {:ok, _pid} = Presto.create_component(CounterComponent, 123)
+      {:error, :process_already_exists} = Presto.create_component(CounterComponent, 123)
     end
   end
 
   describe "find_component/2" do
     test "finds a component" do
-      {:ok, _pid} = Presto.create_component(CounterComponent, 1)
-      {:ok, pid} = Presto.find_component(CounterComponent, 1)
+      {:ok, _pid} = Presto.create_component(CounterComponent, 123)
+      {:ok, pid} = Presto.find_component(123)
       assert is_pid(pid)
     end
 
     test "fails to find a component" do
-      {:error, :no_such_component} = Presto.find_component(CounterComponent, 1)
+      {:error, :no_such_component} = Presto.find_component(123)
     end
   end
 
@@ -76,12 +71,12 @@ defmodule PrestoTest do
 
   describe "component_exists?/2" do
     test "false if component does not exist" do
-      refute Presto.component_exists?(CounterComponent, 1)
+      refute Presto.component_exists?(123)
     end
 
     test "returns existing component" do
-      {:ok, _pid} = Presto.create_component(CounterComponent, 1)
-      assert Presto.component_exists?(CounterComponent, 1)
+      {:ok, _pid} = Presto.create_component(CounterComponent, 123)
+      assert Presto.component_exists?(123)
     end
   end
 end

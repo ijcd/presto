@@ -38,7 +38,7 @@ describe('PrestoLib', () => {
         var fired = false;
         presto.bindEvents()
         presto.onEvent(function (prestoEvent) {
-          fired = prestoEvent.domEvent.type;
+          fired = prestoEvent.type;
         })
 
         $('button#theButton').trigger('click')
@@ -63,7 +63,7 @@ describe('PrestoLib', () => {
         var fired = false;
         presto.bindEvents()
         presto.onEvent(function (prestoEvent) {
-          fired = prestoEvent.domEvent.type;
+          fired = prestoEvent.type;
         })
 
         $('#root').trigger('click')
@@ -95,7 +95,7 @@ describe('PrestoLib', () => {
         var fired = false;
         presto.bindEvents();
         presto.onEvent(function (prestoEvent) {
-          fired = prestoEvent.domEvent.type;
+          fired = prestoEvent.type;
         })
 
         // verify working
@@ -179,7 +179,7 @@ describe('PrestoLib', () => {
 
           presto.handleCommand({
             name: "update_component",
-            componentId: "cA",
+            component_id: "cA",
             content: `<div class="presto-component" id="cA">Counter is: 2</div>`
           });
   
@@ -242,11 +242,11 @@ describe('PrestoLib', () => {
         $('button#theButton').trigger('click')
         console.log("theEvent", theEvent);
         assert.equal(theEvent.element, "BUTTON");
-        assert.equal(theEvent.domEvent.type, "click");
+        assert.equal(theEvent.type, "click");
         assert.deepEqual(theEvent.attrs, {id: "theButton", class: "presto-click presto-mouseenter presto-mousedown"});
         assert.equal(theEvent.id, "theButton");
-        assert.equal(theEvent.instanceId, "iA");
-        assert.equal(theEvent.componentId, "cA");
+        assert.equal(theEvent.instance_id, "iA");
+        assert.equal(theEvent.component_id, "cA");
 
         // fired = false;
 

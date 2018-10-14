@@ -92,21 +92,24 @@ defmodule Presto do
   def component(component_module, component_id) do
     {:ok, pid} = find_or_create_component(component_module, encode_id(component_id))
 
-    instance_id = :crypto.strong_rand_bytes(32) |> Base.url_encode64()
     {:ok, component} = Presto.Component.render(pid)
-    instance = Phoenix.HTML.Tag.content_tag(:div, component, class: "presto-component-instance", id: instance_id)
+    instance = Phoenix.HTML.Tag.content_tag(:div, component, class: "presto-component-instance", id: make_instance_id())
 
     instance
   end
 
   defp encode_id(id) do
     Phoenix.Token.sign(PrestoDemoWeb.Endpoint, "component salt", id)
-    |> Base.url_encode64()
+    |> Base.url_encode64(padding: false)
   end
 
-  defp decode_id(text) do
-    text
-    |> Base.url_decode64()
-    |> (&(Phoenix.Token.verify(MyApp.Endpoint, "component salt", &1, max_age: 86400*30))).()
+  # defp decode_id(text) do
+  #   text
+  #   |> Base.url_decode64(padding: false)
+  #   |> (&(Phoenix.Token.verify(MyApp.Endpoint, "component salt", &1, max_age: 86400*30))).()
+  # end
+
+  defp make_instance_id() do
+    :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
   end
 end

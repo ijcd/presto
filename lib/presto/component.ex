@@ -112,12 +112,10 @@ defmodule Presto.Component do
       |> do_render()
       |> Util.safe_to_string()
 
-    component_selector = ".presto-component##{state.component_id}"
-
     reply =
       {:ok,
        %Presto.Action.UpdateComponent{
-         component_selector: component_selector,
+         component_id: state.component_id,
          content: content
        }}
 

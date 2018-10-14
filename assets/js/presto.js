@@ -79,12 +79,6 @@ export class Component {
   }
 }
 
-// https://stackoverflow.com/questions/9368538/getting-an-array-of-all-dom-events-possible
-function allEventNames() {
-  return Object.getOwnPropertyNames(document).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(Object.getPrototypeOf(document)))).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(window))).filter(function(i){return !i.indexOf("on")&&(document[i]==null||typeof document[i]=="function");}).filter(function(elem, pos, self){return self.indexOf(elem) == pos;});
-}
-
-
 export class Presto { 
   constructor() {
     this.callbacks = {
@@ -109,15 +103,29 @@ export class Presto {
 
       // events attached to internal elements
       $('body').on(namespacedName, prestoClass, (event) => {
-        var prestoEvent = self.prepareEvent(event);
+        var prestoEvent = self.prepareEvent(namespacedName, event);
         self.runEventHooks(prestoEvent);
       });
 
       // events attached to the body
       $('body' + prestoClass).on(namespacedName, (event) => {
-        var prestoEvent = self.prepareEvent(event);
+        var prestoEvent = self.prepareEvent(namespacedName, event);
         self.runEventHooks(prestoEvent);
       });
+    });
+  }
+
+  bindChannel(channel) {
+    var self = this;
+
+    self.onEvent(function (prestoEvent) {
+      // console.debug("[Presto] sending event", prestoEvent);
+      channel.push("presto", prestoEvent);
+    });
+    
+    channel.on("presto", payload => {
+      // console.debug("[Presto] got event", payload);
+      self.handleCommand(payload);
     });
   }
 
@@ -141,11 +149,6 @@ export class Presto {
     this.callbacks.postUpdate.forEach( callback => callback(payload) )
   }
 
-// this.channel.on("presto", payload => {
-//   console.log("RECEIVED", payload)
-//   self.handleCommand(payload)
-// }
-
   handleCommand(payload) {
     var {name: name} = payload;
     switch (name) {
@@ -161,7 +164,7 @@ export class Presto {
   }
 
   handleCommandUpdateComponent(payload) {
-    var {componentId: componentId, content: content} = payload;
+    var {component_id: componentId, content: content} = payload;
     Component.update(componentId, content);
   }
 
@@ -169,23 +172,34 @@ export class Presto {
     console.warn("[Presto] Unable to handle payload: ", payload);
   }
 
-  prepareEvent(event) {
+  prepareEvent(name, event) {
     var $elem = $(event.target);
     
     var $instance = $elem.parents(".presto-component-instance").toArray().reverse()[0];
     var $component = $elem.parents(".presto-component").toArray().reverse()[0];
 
+    var meta = name;
+    if (event.keyCode) {
+      meta = [name, event.keyCode]
+    }
+
     var prestoEvent = {
       element: $elem.prop('tagName'),
-      domEvent: event,
+      type: event.type,
+      meta: meta,   
       attrs: $elem.attr(),
       id: $elem.prop('id'),
-      instanceId: $instance && $instance.id,
-      componentId: $component && $component.id,
+      instance_id: $instance && $instance.id,
+      component_id: $component && $component.id,
     }
 
     return prestoEvent;
   }
+}
+
+// https://stackoverflow.com/questions/9368538/getting-an-array-of-all-dom-events-possible
+function allEventNames() {
+  return Object.getOwnPropertyNames(document).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(Object.getPrototypeOf(document)))).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(window))).filter(function(i){return !i.indexOf("on")&&(document[i]==null||typeof document[i]=="function");}).filter(function(elem, pos, self){return self.indexOf(elem) == pos;});
 }
 
 // Extend jQuery with attr()

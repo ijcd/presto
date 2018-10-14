@@ -13,7 +13,7 @@ defmodule Presto.ComponentTest do
 
   def make_response(content, component_id \\ "visitor1") do
     %Presto.Action.UpdateComponent{
-      component_selector: ".presto-component##{component_id}",
+      component_id: component_id,
       content: "<div class=\"presto-component\" id=\"#{component_id}\">#{content}</div>",
       name: "update_component"
     }
@@ -37,18 +37,9 @@ defmodule Presto.ComponentTest do
       {:ok, _pid} = Component.start_link(ComponentIdFixture, "visitor1")
     end
 
-    test "starts with a similar component_ids" do
-      {:ok, _pid} = Component.start_link(ComponentIdFixture, "visitor1")
-      {:ok, _pid} = Component.start_link(ComponentIdTooFixture, "visitor1")
-    end
-
     test "errors on duplicate component_id" do
       {:ok, _pid} = Component.start_link(ComponentIdFixture, "visitor1")
       {:error, {:already_started, _pid}} = Component.start_link(ComponentIdFixture, "visitor1")
-    end
-
-    test "returns component_id from conn.assigns.visitor_id" do
-      assert 5 == ComponentIdFixture.component_id(%{visitor_id: 5})
     end
 
     test "is overridable" do
@@ -124,7 +115,7 @@ defmodule Presto.ComponentTest do
                   "div",
                   [
                     [32, "class", 61, 34, "presto-component", 34],
-                    [32, "id", 61, 34, "76697369746F7231", 34]
+                    [32, "id", 61, 34, "visitor1", 34]
                   ],
                   62,
                   "1",
