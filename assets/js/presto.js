@@ -20,7 +20,7 @@
 
 // import $ from 'cash-dom'
 import unpoly from 'unpoly'
-up.log.enable();
+// up.log.enable();
 
 export class Component {
 
@@ -64,10 +64,17 @@ export class Component {
   static doUpdate(componentId, content) {
     // TODO: implement this by listening for DOM mutation events instead (don't scan every time)
     var components = Component.scan();
+    var instances = components.get(componentId)
 
-    for (var instanceId of components.get(componentId)) {
-      var decorated = `<div class="presto-component-instance" id="${instanceId}">` + content + '</div>'
-      up.extract(`div.presto-component-instance#${instanceId}`, decorated);
+    switch (instances) {
+      case undefined:
+        console.warn("[Presto] Ignoring request to update unknown componentId: " + componentId);
+        break;
+      default:
+        for (var instanceId of components.get(componentId)) {
+          var decorated = `<div class="presto-component-instance" id="${instanceId}">` + content + '</div>'
+          up.extract(`div.presto-component-instance#${instanceId}`, decorated);
+        }  
     }
   }
 }
@@ -131,61 +138,34 @@ export class Presto {
   runPostUpdateHooks(payload){
     this.callbacks.postUpdate.forEach( callback => callback(payload) )
   }
-}
 
+// this.channel.on("presto", payload => {
+//   console.log("RECEIVED", payload)
+//   self.handleCommand(payload)
+// }
 
+  handleCommand(payload) {
+    var {name: name} = payload;
+    switch (name) {
+      case "update_component": {
+        this.runPreUpdateHooks(payload);
+        this.handleCommandUpdateComponent(payload);
+        this.runPostUpdateHooks(payload);
+        break;
+      }
+      default:
+        this.handleCommandUnknown(payload);
+    }
+  }
 
-//     this.channel              = channel;
-//     this.unpoly               = unpoly;
+  handleCommandUpdateComponent(payload) {
+    var {componentId: componentId, content: content} = payload;
+    Component.update(componentId, content);
+  }
 
-
-
-//     this.channel.on("presto", payload => {
-//       console.log("RECEIVED", payload)
-
-//       var {name: name} = payload;
-
-//       switch (name) {
-//         case "update_component": {
-
-//           self.runPreUpdateHooks(payload);
-
-//           var {component_selector: component_selector, content: content} = payload;
-
-//           var matchingComponents = $.find(component_selector);
-//           console.log("MATCHING", matchingComponents)
-
-//           var focused = document.activeElement;
-//           $.each(matchingComponents, function(index, component) {
-//             console.log("COMPONENT", index, component);
-//             var instance = $(component).parents(".presto-component-root").toArray().reverse()[0];
-//             console.log("INSTANCE", instance)
-//             // debugger
-//             self.unpoly.extract(component_selector, content, {
-//               origin: instance
-//             });
-//           })
-//           $(focused).focus();
-
-
-//           self.runPostUpdateHooks(payload);
-
-//           break;
-//         }
-//       }
-//     });
-//   }
-
-//   onPreUpdate  (callback){ this.callbacks.preUpdate.push(callback) }
-//   onPostUpdate (callback){ this.callbacks.postUpdate.push(callback) }
-
-//   runPreUpdateHooks(payload){
-//     this.callbacks.preUpdate.forEach( callback => callback(payload) )
-//   }
-
-//   runPostUpdateHooks(payload){
-//     this.callbacks.postUpdate.forEach( callback => callback(payload) )
-//   }
+  handleCommandUnknown(payload) {
+    console.warn("[Presto] Unable to handle payload: ", payload);
+  }
 
 //   pushEvent(eventName, event) {
 //     var $elem = $(event.target);
@@ -212,11 +192,6 @@ export class Presto {
 //   }
 // }
 
-// export {Presto};
-
-
-
-
 // class Presto {
 //   constructor(channel, unpoly){
 //     var self = this;
@@ -224,11 +199,6 @@ export class Presto {
 //     this.channel              = channel;
 //     this.unpoly               = unpoly;
 //     this.callbacks = {preUpdate: [], postUpdate: []};
-
-
-
-
-
 
 // // TODO: remove need to extend jQuery
 // // TODO: write some javascript tests
@@ -260,3 +230,6 @@ export class Presto {
 
 
 
+//     this.channel              = channel;
+//     this.unpoly               = unpoly;
+}

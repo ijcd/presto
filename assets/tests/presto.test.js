@@ -4,19 +4,16 @@
 
 var assert = chai.assert;
 
-function setRoot(what) {
-  return document.querySelector('#root').innerHTML = what;
-}
-
 describe('PrestoLib', () => {
 
   afterEach(function () {
     setRoot('');
   });
 
-  ////////////////
-  // PRESTO
-  ////////////////
+  ////////////
+  // PRESTO //
+  ////////////
+  
   describe('Presto', () => {
 
     describe('constructor', () => {
@@ -133,12 +130,102 @@ describe('PrestoLib', () => {
         assert.equal(fired, false);
       });
     });
+
+    describe('handleCommand', () => {
+      describe('unknown command', () => {
+
+        it('warns by default', () => {
+          var presto = new Presto.Presto()
+          var fooload = {name: "foo"};
+
+          var warnings = collectWarnings(() => {
+            presto.handleCommand(fooload);
+          });
+
+          
+          assert.deepEqual(warnings, ["[Presto] Unable to handle payload: ", fooload]);
+        });
+
+        it('calls a custom function', () => {          
+          var presto = new Presto.Presto()          
+          var fooload = {name: "foo"};
+
+          var called = false;
+          var calledWith = null;
+          presto.handleCommandUnknown = (payload) => {
+            called = true;
+            calledWith = payload;
+          };
+
+          presto.handleCommand(fooload);
+
+          assert.equal(called, true);
+          assert.equal(calledWith, fooload);
+        });
+
+
+      });
+
+      describe('update_component', () => {
+        it('updates a component', () => {
+          setRoot(`
+            <div class="presto-component-instance" id="iA">
+              <div class="presto-component" id="cA">
+                Counter is: 1
+              </div>
+            </div>        
+          `)
+          var presto = new Presto.Presto();
+
+          presto.handleCommand({
+            name: "update_component",
+            componentId: "cA",
+            content: `<div class="presto-component" id="cA">Counter is: 2</div>`
+          });
+  
+          assert.equal($('div.presto-component-instance#iA .presto-component#cA').text().trim(), 'Counter is: 2');
+        });
+
+        it('calls pre/post update hooks', () => {
+          setRoot(`
+            <div class="presto-component-instance" id="iA">
+              <div class="presto-component" id="cA">
+                Counter is: 1
+              </div>
+            </div>        
+          `)          
+          var calls = [];
+          var presto = new Presto.Presto();
+
+          presto.onPreUpdate(() => {
+            calls.push("pre 1");
+          });
+          presto.onPreUpdate(() => {
+            calls.push("pre 2");
+          });
+          presto.onPostUpdate(() => {
+            calls.push("post 1");
+          });
+          presto.onPostUpdate(() => {
+            calls.push("post 2");
+          });
+
+          presto.handleCommand({
+            name: "update_component",
+            componentId: "cA",
+            content: `<div class="presto-component" id="cA">Counter is: 2</div>`
+          });
+
+          assert.deepEqual(calls, ["pre 1", "pre 2", "post 1", "post 2"]);
+        });
+      });
+    });
   });
 
+  ///////////////
+  // COMPONENT //
+  ///////////////
 
-  ////////////////
-  // COMPONENT
-  ////////////////
   describe('Component', () => {
 
     describe('scan', () => {
@@ -312,7 +399,52 @@ describe('PrestoLib', () => {
         assert.equal($('div.presto-component-instance#iA .presto-component#cA').text().trim(), 'Counter is: 2');
         assert.equal(document.activeElement, startingActive);
       });
+
+      it('warns about update for missing component-id', () => {
+        setRoot(`
+          <div class="presto-component-instance" id="iA">
+            <div class="presto-component" id="cA">
+              Counter is: 1
+            </div>
+          </div>        
+        `);
+        
+        var warnings = collectWarnings(() => {
+          Presto.Component.update('doesNotExist', `
+          <div class="presto-component" id="cA">
+            Counter is: 2
+          </div>
+          `);
+        });
+
+        assert.deepEqual(warnings, ["[Presto] Ignoring request to update unknown componentId: doesNotExist"]);
+      });
     });
   });
 });
 
+
+/////////////
+// HELPERS //
+/////////////
+
+function setRoot(what) {
+  return document.querySelector('#root').innerHTML = what;
+}
+
+function collectWarnings(f) {
+  var oldWarn = console.warn;
+  var warnings = [];
+
+  try {
+    console.warn = (...s) => {
+      warnings.push(...s);
+      oldWarn(...s)
+    };
+    f();
+  } finally {
+    console.warn = oldWarn;
+  }
+
+  return warnings;
+}
