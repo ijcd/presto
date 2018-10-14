@@ -37,8 +37,8 @@ describe('PrestoLib', () => {
 
         var fired = false;
         presto.bindEvents()
-        presto.onEvent(function (event) {
-          fired = event.type;
+        presto.onEvent(function (prestoEvent) {
+          fired = prestoEvent.domEvent.type;
         })
 
         $('button#theButton').trigger('click')
@@ -62,8 +62,8 @@ describe('PrestoLib', () => {
 
         var fired = false;
         presto.bindEvents()
-        presto.onEvent(function (event) {
-          fired = event.type;
+        presto.onEvent(function (prestoEvent) {
+          fired = prestoEvent.domEvent.type;
         })
 
         $('#root').trigger('click')
@@ -94,8 +94,8 @@ describe('PrestoLib', () => {
 
         var fired = false;
         presto.bindEvents();
-        presto.onEvent(function (event) {
-          fired = event.type;
+        presto.onEvent(function (prestoEvent) {
+          fired = prestoEvent.domEvent.type;
         })
 
         // verify working
@@ -218,6 +218,45 @@ describe('PrestoLib', () => {
 
           assert.deepEqual(calls, ["pre 1", "pre 2", "post 1", "post 2"]);
         });
+      });
+    });
+
+    describe('onEvent', () => {
+      it('runs callback with annotated DOM event', () => {
+        setRoot(`
+          <div class="presto-component-instance" id="iA">
+            <div class="presto-component" id="cA">
+              Counter is: 1
+              <button id="theButton" class="presto-click presto-mouseenter presto-mousedown">Click Me</button>
+            </div>
+          </div>        
+        `)
+        var presto = new Presto.Presto()
+
+        var theEvent = null;
+        presto.bindEvents()
+        presto.onEvent(function (prestoEvent) {
+          theEvent = prestoEvent;
+        })
+
+        $('button#theButton').trigger('click')
+        console.log("theEvent", theEvent);
+        assert.equal(theEvent.element, "BUTTON");
+        assert.equal(theEvent.domEvent.type, "click");
+        assert.deepEqual(theEvent.attrs, {id: "theButton", class: "presto-click presto-mouseenter presto-mousedown"});
+        assert.equal(theEvent.id, "theButton");
+        assert.equal(theEvent.instanceId, "iA");
+        assert.equal(theEvent.componentId, "cA");
+
+        // fired = false;
+
+        // $('button#theButton').trigger('mouseenter')
+        // assert.equal(fired, 'mouseenter');
+        // fired = false;
+
+        // $('button#theButton').trigger('mousedown')
+        // assert.equal(fired, 'mousedown');
+        // fired = false;
       });
     });
   });

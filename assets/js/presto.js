@@ -109,12 +109,14 @@ export class Presto {
 
       // events attached to internal elements
       $('body').on(namespacedName, prestoClass, (event) => {
-        self.runEventHooks(event);
+        var prestoEvent = self.prepareEvent(event);
+        self.runEventHooks(prestoEvent);
       });
 
       // events attached to the body
       $('body' + prestoClass).on(namespacedName, (event) => {
-        self.runEventHooks(event);
+        var prestoEvent = self.prepareEvent(event);
+        self.runEventHooks(prestoEvent);
       });
     });
   }
@@ -167,69 +169,42 @@ export class Presto {
     console.warn("[Presto] Unable to handle payload: ", payload);
   }
 
-//   pushEvent(eventName, event) {
-//     var $elem = $(event.target);
-//     var $component = $elem.parents(".presto-component").toArray().reverse()[0];
-//     var $instance = $elem.parents(".presto-component-instance").toArray().reverse()[0];
+  prepareEvent(event) {
+    var $elem = $(event.target);
+    
+    var $instance = $elem.parents(".presto-component-instance").toArray().reverse()[0];
+    var $component = $elem.parents(".presto-component").toArray().reverse()[0];
 
-//     var fullEvent = eventName;
-//     if (event.keyCode) {
-//       fullEvent = [eventName, event.keyCode]
-//     }
+    var prestoEvent = {
+      element: $elem.prop('tagName'),
+      domEvent: event,
+      attrs: $elem.attr(),
+      id: $elem.prop('id'),
+      instanceId: $instance && $instance.id,
+      componentId: $component && $component.id,
+    }
 
-//     var prestoEvent = {
-//       element: $elem.prop('tagName'),
-//       event: fullEvent,
-//       attrs: $elem.attr(),
-//       id: $elem.prop('id'),
-//       component_id: $component.id,
-//       instance_id: $instance.id,
-//     }
-
-//     console.log("SENDING", prestoEvent)
-
-//     this.channel.push("presto", prestoEvent);
-//   }
-// }
-
-// class Presto {
-//   constructor(channel, unpoly){
-//     var self = this;
-
-//     this.channel              = channel;
-//     this.unpoly               = unpoly;
-//     this.callbacks = {preUpdate: [], postUpdate: []};
-
-// // TODO: remove need to extend jQuery
-// // TODO: write some javascript tests
-
-// // Extend jQuery with attr()
-// (function(old) {
-//   $.fn.attr = function() {
-//     if(arguments.length === 0) {
-//       if(this.length === 0) {
-//         return null;
-//       }
-
-//       var obj = {};
-//       $.each(this[0].attributes, function() {
-//         if(this.specified) {
-//           obj[this.name] = this.value;
-//         }
-//       });
-//       return obj;
-//     }
-
-//     return old.apply(this, arguments);
-//   };
-// })($.fn.attr);
-
-
-// console.log(event);
-// // self.pushEvent(eventName, event);
-
-
-
-//     this.channel              = channel;
-//     this.unpoly               = unpoly;
+    return prestoEvent;
+  }
 }
+
+// Extend jQuery with attr()
+(function(old) {
+  $.fn.attr = function() {
+    if(arguments.length === 0) {
+      if(this.length === 0) {
+        return null;
+      }
+
+      var obj = {};
+      $.each(this[0].attributes, function() {
+        if(this.specified) {
+          obj[this.name] = this.value;
+        }
+      });
+      return obj;
+    }
+
+    return old.apply(this, arguments);
+  };
+})($.fn.attr);
