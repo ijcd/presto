@@ -119,12 +119,12 @@ export class Presto {
     var self = this;
 
     self.onEvent(function (prestoEvent) {
-      // console.debug("[Presto] sending event", prestoEvent);
+      console.debug("[Presto] sending event", prestoEvent);
       channel.push("presto", prestoEvent);
     });
     
     channel.on("presto", payload => {
-      // console.debug("[Presto] got event", payload);
+      console.debug("[Presto] got event", payload);
       self.handleCommand(payload);
     });
   }
@@ -175,8 +175,8 @@ export class Presto {
   prepareEvent(name, event) {
     var $elem = $(event.target);
     
-    var $instance = $elem.parents(".presto-component-instance").toArray().reverse()[0];
-    var $component = $elem.parents(".presto-component").toArray().reverse()[0];
+    var $instance = $elem.parents(".presto-component-instance").toArray()[0];
+    var $component = $elem.parents(".presto-component").toArray()[0];
 
     var meta = name;
     if (event.keyCode) {

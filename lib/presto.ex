@@ -91,10 +91,12 @@ defmodule Presto do
   @spec component(component_module, component_id) :: any
   def component(component_module, component_id) do
     {:ok, pid} = find_or_create_component(component_module, encode_id(component_id))
+    {:presto_component, pid}
+  end
 
+  def render({:presto_component, pid}) do
     {:ok, component} = Presto.Component.render(pid)
     instance = Phoenix.HTML.Tag.content_tag(:div, component, class: "presto-component-instance", id: make_instance_id())
-
     instance
   end
 

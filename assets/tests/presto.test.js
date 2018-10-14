@@ -247,17 +247,38 @@ describe('PrestoLib', () => {
         assert.equal(theEvent.id, "theButton");
         assert.equal(theEvent.instance_id, "iA");
         assert.equal(theEvent.component_id, "cA");
-
-        // fired = false;
-
-        // $('button#theButton').trigger('mouseenter')
-        // assert.equal(fired, 'mouseenter');
-        // fired = false;
-
-        // $('button#theButton').trigger('mousedown')
-        // assert.equal(fired, 'mousedown');
-        // fired = false;
       });
+
+      it('handles nested components properly', () => {
+        setRoot(`
+        <div class="presto-component-instance" id="ilA">
+          <div class="presto-component" id="clA">
+            <div class="presto-component-instance" id="iA">
+              <div class="presto-component" id="cA">
+                Counter is: 1
+                <button id="theButton" class="presto-click presto-mouseenter presto-mousedown">Click Me</button>
+              </div>
+            </div>        
+          </div>
+        </div>        
+        `)
+        var presto = new Presto.Presto()
+
+        var theEvent = null;
+        presto.bindEvents()
+        presto.onEvent(function (prestoEvent) {
+          theEvent = prestoEvent;
+        })
+
+        $('button#theButton').trigger('click')
+        console.log("theEvent", theEvent);
+        assert.equal(theEvent.element, "BUTTON");
+        assert.equal(theEvent.type, "click");
+        assert.deepEqual(theEvent.attrs, {id: "theButton", class: "presto-click presto-mouseenter presto-mousedown"});
+        assert.equal(theEvent.id, "theButton");
+        assert.equal(theEvent.instance_id, "iA");
+        assert.equal(theEvent.component_id, "cA");
+      });      
     });
   });
 
