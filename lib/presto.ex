@@ -7,6 +7,8 @@ defmodule Presto do
   @type component_module() :: atom()
   @type component_create() :: {:ok, Presto.component_id()} | {:error, term()}
   @type component_event() :: term()
+  @type component_ref() :: {:presto_component, pid()}
+  @type component_instance :: {:safe, term()}
 
   @doc """
   Creates a new component process based on the `component_module`, and `component_key`.
@@ -82,38 +84,43 @@ defmodule Presto do
   @doc """
   Embed a component.
   """
-  @spec component(component_module) :: any
-  def component(component_module) do
-    component_id = :crypto.strong_rand_bytes(16)
-    component(component_module, component_id)
-  end
+  # @spec component(component_module) :: any
+  # def component(component_module) do
+  #   component_id =
+  #   component(component_module, component_id)
+  # end
 
   @spec component(component_module, component_id) :: any
-  def component(component_module, component_id) do
-    {:ok, pid} = find_or_create_component(component_module, encode_id(component_id))
+  def component(component_module, component_id \\ nil) do
+    component_id = component_id || :crypto.strong_rand_bytes(16)
+    encoded_id = encode_id(component_id)
+    {:ok, pid} = find_or_create_component(component_module, encoded_id)
     {:presto_component, pid}
   end
 
+  @spec render(component_ref) :: component_instance()
   def render({:presto_component, pid}) do
     {:ok, component} = Presto.Component.render(pid)
     instance = Phoenix.HTML.Tag.content_tag(:div, component, class: "presto-component-instance", id: make_instance_id())
     instance
   end
 
-  # component_ids need to be stable
-  def encode_id(id) do
-    Phoenix.Token.sign(PrestoDemoWeb.Endpoint, "component salt", id, signed_at: 0)
-    |> Base.url_encode64(padding: false)
+  def render_component(component, component_id \\ nil) do
+    cb = Application.get_env(:presto, :component_base)
+    Module.concat(cb, component)
+    |> Presto.component(component_id)
+    |> Presto.render()
   end
 
-  # defp decode_id(text) do
-  #   text
-  #   |> Base.url_decode64(padding: false)
-  #   |> (&(Phoenix.Token.verify(MyApp.Endpoint, "component salt", &1, max_age: 86400*30))).()
-  # end
+  # component_ids need to be stable
+  def encode_id(id) do
+    key = Application.get_env(:presto, :secret_key_base)
+    data = :erlang.term_to_binary(id)
+    :crypto.hmac(:sha256, key, data) |> Base.encode16()
+  end
 
-  # instance_ids need to be secure
+  # instance_ids should be unique and unguessable
   defp make_instance_id() do
-    :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+    :crypto.strong_rand_bytes(32) |> Base.encode16()
   end
 end

@@ -108,8 +108,7 @@ assets/package.json
   ...
   "dependencies": {
     ...
-    "presto": "file:../deps/presto",
-    "unpoly": "^0.37.0"
+    "presto": "file:../deps/presto"
   },
   ...
 ```
