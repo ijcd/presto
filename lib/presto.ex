@@ -100,8 +100,9 @@ defmodule Presto do
     instance
   end
 
-  defp encode_id(id) do
-    Phoenix.Token.sign(PrestoDemoWeb.Endpoint, "component salt", id)
+  # component_ids need to be stable
+  def encode_id(id) do
+    Phoenix.Token.sign(PrestoDemoWeb.Endpoint, "component salt", id, signed_at: 0)
     |> Base.url_encode64(padding: false)
   end
 
@@ -111,6 +112,7 @@ defmodule Presto do
   #   |> (&(Phoenix.Token.verify(MyApp.Endpoint, "component salt", &1, max_age: 86400*30))).()
   # end
 
+  # instance_ids need to be secure
   defp make_instance_id() do
     :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
   end

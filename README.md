@@ -98,7 +98,7 @@ end
 
 index.html.eex
 ```elixir
-<%= Presto.component(PrestoDemoWeb.Presto.SingleCounter, assigns[:visitor_id]) %>
+<%= Presto.render(Presto.component(PrestoDemoWeb.Presto.SingleCounter, assigns[:visitor_id])) %>
 ```
 
 ### Wire up the javascript
