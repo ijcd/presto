@@ -19,7 +19,7 @@ Web development is too complciated. Front-ends, back-ends, multiple languages, m
 We want:
 
 1. the feel and data model (mostly) of React.
-2. views to be a project of the data.
+2. views to be a projection of the data.
 3. the simplicity of Elm's model/update/view functions.
 4. all of this in Elixir.
 
