@@ -14,7 +14,7 @@ Add this to `mix.exs`:
 
 ## Philosophy
 
-Web development is too complciated. Front-ends, back-ends, multiple languages, markup, it's all too complicated. Thinkgs can be simpler.
+Web development is too complciated. Front-ends, back-ends, multiple languages, markup, it's all too complicated. Things can be simpler.
 
 We want:
 
