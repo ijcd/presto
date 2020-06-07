@@ -37,7 +37,7 @@ This is a `GenServer`.
 
 The `GenServers` are managed by a `DynamicSupervisor`.
 
-Components are coped to a `visitor_id`, which is unique to each browser.
+Components are scoped to a `visitor_id`, which is unique to each browser.
 
 ### Add Presto to `mix.exs`
 
