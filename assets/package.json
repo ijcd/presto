@@ -19,7 +19,7 @@
     "mocha-loader": "^2.0.0",
     "webpack": "4.0.0",
     "webpack-cli": "^2.0.10",
-    "webpack-dev-server": "^3.1.9"
+    "webpack-dev-server": "^3.1.11"
   },
   "scripts": {
     "docs": "documentation build js/presto.js -f html -o ../doc/js",
