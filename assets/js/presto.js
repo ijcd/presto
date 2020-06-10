@@ -1,5 +1,7 @@
 'use strict'
 
+/* global document */
+
 /**
 * Presto JavaScript client
 *
@@ -10,7 +12,6 @@
 *
 * ```javascript
 *     import "presto"
-*     import unpoly from "unpoly/dist/unpoly.js"
 *
 *     let presto = new Presto(channel, up);
 * ```
@@ -18,68 +19,18 @@
 * @module presto
 */
 
-// import $ from 'cash-dom'
-import unpoly from 'unpoly'
-// up.log.enable();
+import { Browser } from './browser';
+export { Browser };
 
-export class Component {
+import { DOM } from './dom';
+export { DOM };
 
-  /**
-   * returns a map, indexing .presto.component-instance elements
-   * by their corresponding .presto-component#id (component-id)
-   */
-  static scan() {
-    var m = new Map();
+import { Component } from './component';
+export { Component };
 
-    // find all component instances in the page
-    var elements = document.querySelectorAll('.presto-component-instance');
-    Array.prototype.forEach.call(elements, function(pci, i){
-          // find the component for this instance (should only be one)
-      var pcc = pci.querySelector('.presto-component')
+import $ from 'cash-dom';
 
-      // get the current instance set, initializing if not yet found
-      var instances = m.get(pcc.id);
-      if (!instances) {
-        instances = new Set();
-      } 
-
-      // add instance to instances set, 
-      instances.add(pci.id);
-      m.set(pcc.id, instances);
-    });
-
-    return m;
-  }
-
-  static update(componentId, content) {
-    var focused = document.activeElement;
-    try {
-      Component.doUpdate(componentId, content);
-    } 
-    finally {
-      focused.focus();
-    }
-  }
-
-  static doUpdate(componentId, content) {
-    // TODO: implement this by listening for DOM mutation events instead (don't scan every time)
-    var components = Component.scan();
-    var instances = components.get(componentId)
-
-    switch (instances) {
-      case undefined:
-        console.warn("[Presto] Ignoring request to update unknown componentId: " + componentId);
-        break;
-      default:
-        for (var instanceId of components.get(componentId)) {
-          var decorated = `<div class="presto-component-instance" id="${instanceId}">` + content + '</div>'
-          up.extract(`div.presto-component-instance#${instanceId}`, decorated);
-        }  
-    }
-  }
-}
-
-export class Presto { 
+export class Presto {
   constructor() {
     this.callbacks = {
       onEvent: [],
@@ -92,7 +43,6 @@ export class Presto {
       return name.replace(/^on/, '');
     });
   }
-
   bindEvents() {
     var self = this;
 
@@ -122,7 +72,7 @@ export class Presto {
       console.debug("[Presto] sending event", prestoEvent);
       channel.push("presto", prestoEvent);
     });
-    
+
     channel.on("presto", payload => {
       console.debug("[Presto] got event", payload);
       self.handleCommand(payload);
@@ -133,24 +83,24 @@ export class Presto {
     $('body').off(self.eventNamespace);
   }
 
-  onEvent      (callback){ this.callbacks.onEvent.push(callback) }
-  onPreUpdate  (callback){ this.callbacks.preUpdate.push(callback) }
-  onPostUpdate (callback){ this.callbacks.postUpdate.push(callback) }
+  onEvent(callback) { this.callbacks.onEvent.push(callback) }
+  onPreUpdate(callback) { this.callbacks.preUpdate.push(callback) }
+  onPostUpdate(callback) { this.callbacks.postUpdate.push(callback) }
 
-  runEventHooks(payload){
-    this.callbacks.onEvent.forEach( callback => callback(payload) )
+  runEventHooks(payload) {
+    this.callbacks.onEvent.forEach(callback => callback(payload))
   }
 
-  runPreUpdateHooks(payload){
-    this.callbacks.preUpdate.forEach( callback => callback(payload) )
+  runPreUpdateHooks(payload) {
+    this.callbacks.preUpdate.forEach(callback => callback(payload))
   }
 
-  runPostUpdateHooks(payload){
-    this.callbacks.postUpdate.forEach( callback => callback(payload) )
+  runPostUpdateHooks(payload) {
+    this.callbacks.postUpdate.forEach(callback => callback(payload))
   }
 
   handleCommand(payload) {
-    var {name: name} = payload;
+    var { name: name } = payload;
     switch (name) {
       case "update_component": {
         this.runPreUpdateHooks(payload);
@@ -164,7 +114,7 @@ export class Presto {
   }
 
   handleCommandUpdateComponent(payload) {
-    var {component_id: componentId, content: content} = payload;
+    var { component_id: componentId, content: content } = payload;
     Component.update(componentId, content);
   }
 
@@ -174,9 +124,11 @@ export class Presto {
 
   prepareEvent(name, event) {
     var $elem = $(event.target);
-    
-    var $instance = $elem.parents(".presto-component-instance").toArray()[0];
-    var $component = $elem.parents(".presto-component").toArray()[0];
+
+    // var $instance = $elem.parents(".presto-component-instance").toArray()[0];
+    // var $component = $elem.parents(".presto-component").toArray()[0];
+    var $instance = $elem.parents(".presto-component-instance");
+    var $component = $elem.parents(".presto-component");
 
     var meta = name;
     if (event.keyCode) {
@@ -186,11 +138,11 @@ export class Presto {
     var prestoEvent = {
       element: $elem.prop('tagName'),
       type: event.type,
-      meta: meta,   
+      meta: meta,
       attrs: $elem.attr(),
       id: $elem.prop('id'),
-      instance_id: $instance && $instance.id,
-      component_id: $component && $component.id,
+      instance_id: $instance && $instance.attr('id'),
+      component_id: $component && $component.attr('id')
     }
 
     return prestoEvent;
@@ -199,20 +151,24 @@ export class Presto {
 
 // https://stackoverflow.com/questions/9368538/getting-an-array-of-all-dom-events-possible
 function allEventNames() {
-  return Object.getOwnPropertyNames(document).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(Object.getPrototypeOf(document)))).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(window))).filter(function(i){return !i.indexOf("on")&&(document[i]==null||typeof document[i]=="function");}).filter(function(elem, pos, self){return self.indexOf(elem) == pos;});
+  if (typeof jest !== 'undefined') {
+    return ["onreadystatechange", "onpointerlockchange", "onpointerlockerror", "onbeforecopy", "onbeforecut", "onbeforepaste", "onfreeze", "onresume", "onsearch", "onsecuritypolicyviolation", "onvisibilitychange", "oncopy", "oncut", "onpaste", "onabort", "onblur", "oncancel", "oncanplay", "oncanplaythrough", "onchange", "onclick", "onclose", "oncontextmenu", "oncuechange", "ondblclick", "ondrag", "ondragend", "ondragenter", "ondragleave", "ondragover", "ondragstart", "ondrop", "ondurationchange", "onemptied", "onended", "onerror", "onfocus", "onformdata", "oninput", "oninvalid", "onkeydown", "onkeypress", "onkeyup", "onload", "onloadeddata", "onloadedmetadata", "onloadstart", "onmousedown", "onmouseenter", "onmouseleave", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onpause", "onplay", "onplaying", "onprogress", "onratechange", "onreset", "onresize", "onscroll", "onseeked", "onseeking", "onselect", "onstalled", "onsubmit", "onsuspend", "ontimeupdate", "ontoggle", "onvolumechange", "onwaiting", "onwebkitanimationend", "onwebkitanimationiteration", "onwebkitanimationstart", "onwebkittransitionend", "onwheel", "onauxclick", "ongotpointercapture", "onlostpointercapture", "onpointerdown", "onpointermove", "onpointerup", "onpointercancel", "onpointerover", "onpointerout", "onpointerenter", "onpointerleave", "onselectstart", "onselectionchange", "onanimationend", "onanimationiteration", "onanimationstart", "ontransitionend", "onfullscreenchange", "onfullscreenerror", "onwebkitfullscreenchange", "onwebkitfullscreenerror", "onpointerrawupdate"]
+  } else {
+    return Object.getOwnPropertyNames(document).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(Object.getPrototypeOf(document)))).concat(Object.getOwnPropertyNames(Object.getPrototypeOf(window))).filter(function (i) { return !i.indexOf("on") && (document[i] == null || typeof document[i] == "function"); }).filter(function (elem, pos, self) { return self.indexOf(elem) == pos; });
+  }
 }
 
 // Extend jQuery with attr()
-(function(old) {
-  $.fn.attr = function() {
-    if(arguments.length === 0) {
-      if(this.length === 0) {
+(function (old) {
+  $.fn.attr = function () {
+    if (arguments.length === 0) {
+      if (this.length === 0) {
         return null;
       }
 
       var obj = {};
-      $.each(this[0].attributes, function() {
-        if(this.specified) {
+      $.each(this[0].attributes, function () {
+        if (this.specified) {
           obj[this.name] = this.value;
         }
       });

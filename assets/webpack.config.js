@@ -1,3 +1,4 @@
+
 const path = require('path')
 
 module.exports = {
@@ -6,10 +7,18 @@ module.exports = {
     filename: 'presto.js',
     path: path.resolve(__dirname, '../priv/static'),
     library: 'Presto',
-    libraryTarget: 'umd'
+    libraryTarget: 'umd',
+    globalObject: 'this'
   },
   module: {
     rules: [
+      {
+        test: path.resolve(__dirname, './js/presto.js'),
+        use: [{
+          loader: 'expose-loader',
+          options: 'Presto'
+        }]
+      },
       {
         test: /\.js$/,
         exclude: /node_modules/,
@@ -19,11 +28,5 @@ module.exports = {
       }
     ]
   },
-  plugins: [
-    // // expose $ and jQuery to global scope.
-    // new webpack.ProvidePlugin({
-    //   $: 'cash',
-    //   // cash: 'cash'
-    // })
-  ]
+  plugins: []
 }
